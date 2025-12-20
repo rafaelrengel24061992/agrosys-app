@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroSys Pro - Privado</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <style>
+        body { background-color: #f0fdf4; font-family: sans-serif; margin: 0; }
+        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; border: none; transition: 0.3s; }
+        .aba-ativa { background: #047857 !important; font-weight: bold; }
+        .input-style { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .input-style:focus { border-color: #059669; ring: 2px #059669; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const firebaseConfig = {
+            apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
+            authDomain: "agrosys-e3d99.firebaseapp.com",
+            projectId: "agrosys-e3d99",
+            storageBucket: "agrosys-e3d99.firebasestorage.app",
+            messagingSenderId: "85637972190",
+            appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
+        const RACAS = ["PINTOS P/ CORTE 1 DIA", "PINTOS P/ CORTE BRANCOS RECRIADOS", "PESADÃO CAIPIRA RECRIADO", "CAIPIRA NEGRO RECRIADO", "PESCOÇO PELADO MISTO RECRIADO", "CARIJO MISTO RECRIADO", "MESCLADO CAIPIRA RECRIADO", "PESCOÇO PELADO CARIJO MISTO RECRIADO", "PINTO PESCOÇO PELADO BRANCO RECRIADO", "CODORNAS FÊMEAS", "POSTURA CREME RECRIADA", "POSTURA BRANCA RECRIADA", "POSTURA NEGRA RECRIADA", "POSTURA VERMELHA RECRIADA", "POSTURA CINZA RECRIADA", "POSTURA OVOS AZUIS RECRIADA", "POSTURA VERMELHA OVOS VERDES"];
+
+        function App() {
+            const [autenticado, setAutenticado] = React.useState(sessionStorage.getItem('logado') === 'true');
+            const [senhaDigitada, setSenhaDigitada] = React.useState('');
+            const [aba, setAba] = React.useState('encomenda');
+            const [pedidos, setPedidos] = React.useState([]);
+            const [cliente, setCliente] = React.useState('');
+            const [telefone, setTelefone] = React.useState('');
+            const [linhas, setLinhas] = React.useState([{ raca: '', qtd: '' }]);
+            const [vendedor, setVendedor] = React.useState(localStorage.getItem('vendedor') || '');
+            const [telVendedor, setTelVendedor] = React.useState(localStorage.getItem('telVendedor') || '');
+
+            // --- ALTERE SUA SENHA AQUI ---
+            const SENHA_MESTRA = "12345"; 
+
+            React.useEffect(() => {
+                if (!autenticado) return;
+                const unsub = db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
+                    setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
+                return () => unsub();
+            }, [autenticado]);
+
+            const fazerLogin = () => {
+                if (senhaDigitada === SENHA_MESTRA) {
+                    setAutenticado(true);
+                    sessionStorage.setItem('logado', 'true');
+                } else {
+                    alert("Senha incorreta!");
+                }
+            };
+
+            const abrirWhats = (n) => {
+                const l = n.replace(/\D/g, '');
+                if(l) window.open(`https://wa.me/55${l}`, '_blank');
+            };
+
+            const salvar = async () => {
+                if(!cliente || !linhas[0].raca) return alert("Preencha Nome e Raça");
+                try {
+                    await db.collection("encomendas").add({
+                        cliente, telefone, itens: linhas.filter(i => i.raca && i.qtd),
+                        data: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    setCliente(''); setTelefone(''); setLinhas([{ raca: '', qtd: '' }]);
+                    alert("Pedido Salvo!");
+                } catch(e) { alert("Erro: " + e.message); }
+            };
+
+            // Tela de Login
+            if (!autenticado) {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-emerald-900">
+                        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+                            <h1 className="text-2xl font-black text-emerald-700 mb-2">AGROSYS</h1>
+                            <p className="text-gray-500 text-sm mb-6">Área restrita AGROPOSTAI</p>
+                            <input 
+                                type="password" 
+                                placeholder="Digite a senha" 
+                                className="input-style mb-4 text-center"
+                                value={senhaDigitada}
+                                onChange={(e) => setSenhaDigitada(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && fazerLogin()}
+                            />
+                            <button 
+                                onClick={fazerLogin}
+                                className="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold hover:bg-emerald-700 transition-all"
+                            >
+                                ENTRAR
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Aplicativo após Login
+            return (
+                <div className="max-w-xl mx-auto bg-white min-h-screen shadow-xl">
+                    <div className="flex bg-emerald-600 text-white">
+                        <button onClick={() => setAba('encomenda')} className={`aba-btn ${aba === 'encomenda' ? 'aba-ativa' : ''}`}>ENCOMENDA</button>
+                        <button onClick={() => setAba('resumo')} className={`aba-btn ${aba === 'resumo' ? 'aba-ativa' : ''}`}>RESUMO</button>
+                    </div>
+
+                    {aba === 'encomenda' ? (
+                        <div className="p-5 space-y-4">
+                            <h2 className="font-bold text-emerald-700 border-b pb-1">1. Cadastro de Cliente</h2>
+                            <input placeholder="Nome do Cliente" className="input-style" value={cliente} onChange={e => setCliente(e.target.value)} />
+                            <div className="flex gap-2">
+                                <input placeholder="WhatsApp" className="flex-1 input-style" value={telefone} onChange={e => setTelefone(e.target.value)} />
+                                <button onClick={() => abrirWhats(telefone)} className="bg-green-500 text-white px-4 rounded-lg">Zap</button>
+                            </div>
+
+                            <h2 className="font-bold text-emerald-700 border-b pb-1 mt-4">2. Itens das Aves</h2>
+                            {linhas.map((l, i) => (
+                                <div key={i} className="flex gap-2 mb-2">
+                                    <input list="racas" placeholder="Raça" className="flex-1 p-3 border rounded-lg bg-gray-50" value={l.raca} onChange={e => {
+                                        const n = [...linhas]; n[i].raca = e.target.value; setLinhas(n);
+                                    }} />
+                                    <input type="number" placeholder="Qtd" className="w-20 p-3 border rounded-lg bg-gray-50 font-bold" value={l.qtd} onChange={e => {
+                                        const n = [...linhas]; n[i].qtd = e.target.value; setLinhas(n);
+                                    }} />
+                                </div>
+                            ))}
+                            <datalist id="racas">{RACAS.map(r => <option key={r} value={r} />)}</datalist>
+                            <button onClick={() => setLinhas([...linhas, {raca:'', qtd:''}])} className="text-emerald-600 text-sm font-bold">+ Adicionar Item</button>
+                            
+                            <button onClick={salvar} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg mt-6 active:scale-95 transition-all">SALVAR PEDIDO</button>
+                        </div>
+                    ) : (
+                        <div className="p-5 space-y-6">
+                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                <p className="text-xs font-bold text-emerald-800 mb-2 tracking-widest uppercase">Vendedor Responsável</p>
+                                <input placeholder="Nome" className="w-full p-2 border rounded mb-2" value={vendedor} onChange={e => {setVendedor(e.target.value); localStorage.setItem('vendedor', e.target.value)}} />
+                                <div className="flex gap-2">
+                                    <input placeholder="WhatsApp" className="flex-1 p-2 border rounded" value={telVendedor} onChange={e => {setTelVendedor(e.target.value); localStorage.setItem('telVendedor', e.target.value)}} />
+                                    <button onClick={() => abrirWhats(telVendedor)} className="bg-green-500 text-white px-3 rounded">Zap</button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h3 className="font-bold text-gray-700 text-sm uppercase">Lista de Pedidos</h3>
+                                {pedidos.map(p => (
+                                    <div key={p.id} className="p-4 border rounded-2xl flex justify-between items-center bg-white shadow-sm">
+                                        <div>
+                                            <div className="font-bold text-emerald-900">{p.cliente} <span onClick={() => abrirWhats(p.telefone)} className="text-green-500 text-xs cursor-pointer ml-2">(WhatsApp)</span></div>
+                                            <div className="text-xs text-gray-500">{p.itens?.map(it => `${it.qtd}x ${it.raca}`).join(' | ')}</div>
+                                        </div>
+                                        <button onClick={() => { if(confirm("Excluir este pedido?")) db.collection("encomendas").doc(p.id).delete() }} className="text-red-300 font-bold px-3">X</button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="bg-emerald-900 text-white p-6 rounded-[2rem] shadow-xl">
+                                <h3 className="font-bold mb-4 border-b border-emerald-800 pb-2 text-emerald-400">TOTAL GERAL</h3>
+                                {Object.entries(pedidos.reduce((acc, p) => {
+                                    p.itens?.forEach(i => acc[i.raca] = (acc[i.raca] || 0) + Number(i.qtd));
+                                    return acc;
+                                }, {})).map(([raca, total]) => (
+                                    <div key={raca} className="flex justify-between border-b border-emerald-800/50 py-2">
+                                        <span className="text-xs text-emerald-100">{raca}</span>
+                                        <span className="font-bold text-xl">{total}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={() => { if(confirm("CUIDADO: Isso apagará TODOS os pedidos para o próximo carregamento. Confirma?")) db.collection("encomendas").get().then(s => s.forEach(d => d.ref.delete())) }} className="w-full text-red-400 text-xs py-4">Zerar Banco de Dados (Novo Ciclo)</button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

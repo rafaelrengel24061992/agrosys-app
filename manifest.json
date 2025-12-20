@@ -1,0 +1,15 @@
+{
+  "name": "AgroSys Pro",
+  "short_name": "AgroSys",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2662/2662231.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
