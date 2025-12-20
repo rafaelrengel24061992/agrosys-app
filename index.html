@@ -6,27 +6,27 @@
     <title>AgroSys Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
     <style>
-        body { background-color: #f0fdf4; font-family: sans-serif; margin: 0; }
-        .input-style { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; outline: none; }
-        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; border: none; background: #059669; color: white; opacity: 0.7; }
+        body { background-color: #f0fdf4; margin: 0; font-family: sans-serif; }
+        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; border: none; background: #059669; color: white; opacity: 0.6; }
         .aba-ativa { opacity: 1; font-weight: bold; background: #047857; }
+        .card { background: white; border-radius: 15px; padding: 20px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
-
         const firebaseConfig = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -36,115 +36,68 @@
             appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
         };
 
-        // Inicializa Firebase de forma resiliente
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         const RACAS = ["PINTOS P/ CORTE 1 DIA", "PINTOS P/ CORTE BRANCOS RECRIADOS", "PESADÃO CAIPIRA RECRIADO", "CAIPIRA NEGRO RECRIADO", "PESCOÇO PELADO MISTO RECRIADO", "CARIJO MISTO RECRIADO", "MESCLADO CAIPIRA RECRIADO", "PESCOÇO PELADO CARIJO MISTO RECRIADO", "PINTO PESCOÇO PELADO BRANCO RECRIADO", "CODORNAS FÊMEAS", "POSTURA CREME RECRIADA", "POSTURA BRANCA RECRIADA", "POSTURA NEGRA RECRIADA", "POSTURA VERMELHA RECRIADA", "POSTURA CINZA RECRIADA", "POSTURA OVOS AZUIS RECRIADA", "POSTURA VERMELHA OVOS VERDES"];
 
         function App() {
-            const [autenticado, setAutenticado] = useState(sessionStorage.getItem('logado') === 'true');
-            const [senha, setSenha] = useState('');
-            const [aba, setAba] = useState('encomenda');
-            const [pedidos, setPedidos] = useState([]);
-            
-            // Estados do formulário
-            const [cliente, setCliente] = useState('');
-            const [telefone, setTelefone] = useState('');
-            const [linhas, setLinhas] = useState([{ raca: '', qtd: '' }]);
-            const [vendedor, setVendedor] = useState(localStorage.getItem('vendedor') || '');
-            const [telVendedor, setTelVendedor] = useState(localStorage.getItem('telVendedor') || '');
+            const [logado, setLogado] = React.useState(sessionStorage.getItem('ok') === 's');
+            const [senha, setSenha] = React.useState('');
+            const [aba, setAba] = React.useState('pedir');
+            const [pedidos, setPedidos] = React.useState([]);
+            const [form, setForm] = React.useState({ cliente: '', tel: '', itens: [{ raca: '', qtd: '' }] });
 
-            useEffect(() => {
-                if (!autenticado) return;
-                const unsub = db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
-                    setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            React.useEffect(() => {
+                if (!logado) return;
+                return db.collection("encomendas").orderBy("data", "desc").onSnapshot(s => {
+                    setPedidos(s.docs.map(d => ({ id: d.id, ...d.data() })));
                 });
-                return () => unsub();
-            }, [autenticado]);
+            }, [logado]);
 
             const login = () => {
                 if (senha === "1234") {
-                    setAutenticado(true);
-                    sessionStorage.setItem('logado', 'true');
-                } else { alert("Senha incorreta"); }
+                    setLogado(true);
+                    sessionStorage.setItem('ok', 's');
+                } else alert("Incorreto");
             };
 
             const salvar = async () => {
-                if (!cliente || !linhas[0].raca) return alert("Preencha os campos!");
-                try {
-                    await db.collection("encomendas").add({
-                        cliente, telefone, 
-                        itens: linhas.filter(l => l.raca && l.qtd),
-                        data: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    setCliente(''); setTelefone(''); setLinhas([{ raca: '', qtd: '' }]);
-                    alert("Pedido salvo com sucesso!");
-                } catch (e) { alert("Erro ao conectar ao banco."); }
+                if (!form.cliente || !form.itens[0].raca) return alert("Preencha tudo");
+                await db.collection("encomendas").add({
+                    ...form,
+                    data: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                setForm({ cliente: '', tel: '', itens: [{ raca: '', qtd: '' }] });
+                alert("Salvo!");
             };
 
-            const excluir = (id) => { if(confirm("Excluir?")) db.collection("encomendas").doc(id).delete(); };
-
-            const gerarPDF = () => {
-                const doc = new jspdf.jsPDF();
-                doc.text("AGROPOSTAI - RESUMO", 14, 15);
-                const totais = {};
-                pedidos.forEach(p => p.itens?.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + Number(i.qtd)));
-                doc.autoTable({ head: [['Raça', 'Qtd']], body: Object.entries(totais), startY: 25 });
-                doc.save("encomendas.pdf");
-            };
-
-            if (!autenticado) {
-                return (
-                    <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-900 p-6 text-center">
-                        <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm">
-                            <h1 className="text-3xl font-black text-emerald-700 mb-6">AGROSYS</h1>
-                            <input type="password" placeholder="Senha de Acesso" className="input-style mb-4 text-center text-lg" onChange={e => setSenha(e.target.value)} onKeyPress={e => e.key === 'Enter' && login()} />
-                            <button onClick={login} className="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-lg">ENTRAR</button>
-                        </div>
+            if (!logado) return (
+                <div className="flex items-center justify-center min-h-screen bg-emerald-900 p-6">
+                    <div className="bg-white p-8 rounded-3xl w-full max-w-xs shadow-2xl">
+                        <h1 className="text-2xl font-black text-emerald-700 text-center mb-6">AGROSYS</h1>
+                        <input type="password" placeholder="Senha" className="w-full p-3 border rounded-xl mb-4 text-center" onChange={e => setSenha(e.target.value)} />
+                        <button onClick={login} className="w-full bg-emerald-600 text-white p-3 rounded-xl font-bold">ENTRAR</button>
                     </div>
-                );
-            }
+                </div>
+            );
 
             return (
-                <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl">
-                    <div className="flex sticky top-0 z-50 shadow-md">
-                        <button onClick={() => setAba('encomenda')} className={`aba-btn ${aba === 'encomenda' ? 'aba-ativa' : ''}`}>PEDIDO</button>
-                        <button onClick={() => setAba('resumo')} className={`aba-btn ${aba === 'resumo' ? 'aba-ativa' : ''}`}>RESUMO</button>
+                <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
+                    <div className="flex bg-emerald-600 text-white">
+                        <div onClick={() => setAba('pedir')} className={`aba-btn ${aba === 'pedir' ? 'aba-ativa' : ''}`}>PEDIR</div>
+                        <div onClick={() => setAba('resumo')} className={`aba-btn ${aba === 'resumo' ? 'aba-ativa' : ''}`}>RESUMO</div>
                     </div>
 
-                    {aba === 'encomenda' ? (
-                        <div className="p-6 space-y-5">
-                            <div className="space-y-3">
-                                <label className="text-xs font-bold text-gray-400 uppercase">Dados do Cliente</label>
-                                <input placeholder="Nome Completo" className="input-style" value={cliente} onChange={e => setCliente(e.target.value)} />
-                                <input placeholder="WhatsApp" className="input-style" value={telefone} onChange={e => setTelefone(e.target.value)} />
-                            </div>
-                            <div className="space-y-3 pt-4 border-t">
-                                <label className="text-xs font-bold text-gray-400 uppercase">Aves Encomendadas</label>
-                                {linhas.map((l, i) => (
-                                    <div key={i} className="flex gap-2">
-                                        <input list="racas" placeholder="Raça" className="flex-1 p-3 border rounded-xl bg-gray-50 text-sm" value={l.raca} onChange={e => {
-                                            const n = [...linhas]; n[i].raca = e.target.value; setLinhas(n);
+                    {aba === 'pedir' ? (
+                        <div className="p-6 space-y-4">
+                            <input placeholder="Nome Cliente" className="w-full p-3 border rounded-xl" value={form.cliente} onChange={e => setForm({...form, cliente: e.target.value})} />
+                            <input placeholder="WhatsApp" className="w-full p-3 border rounded-xl" value={form.tel} onChange={e => setForm({...form, tel: e.target.value})} />
+                            <div className="pt-4 border-t">
+                                {form.itens.map((it, i) => (
+                                    <div key={i} className="flex gap-2 mb-2">
+                                        <input list="racas" placeholder="Raça" className="flex-1 p-2 border rounded-lg bg-gray-50" value={it.raca} onChange={e => {
+                                            const n = [...form.itens]; n[i].raca = e.target.value; setForm({...form, itens: n});
                                         }} />
-                                        <input type="number" placeholder="Qtd" className="w-20 p-3 border rounded-xl bg-gray-50 font-bold text-center" value={l.qtd} onChange={e => {
-                                            const n = [...linhas]; n[i].qtd = e.target.value; setLinhas(n);
-                                        }} />
-                                    </div>
-                                ))}
-                                <datalist id="racas">{RACAS.map(r => <option key={r} value={r} />)}</datalist>
-                                <button onClick={() => setLinhas([...linhas, {raca:'', qtd:''}])} className="text-emerald-600 text-xs font-bold">+ ADICIONAR LINHA</button>
-                            </div>
-                            <button onClick={salvar} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg mt-6">SALVAR ENCOMENDA</button>
-                        </div>
-                    ) : (
-                        <div className="p-6 space-y-6 text-sm">
-                            <button onClick={gerarPDF} className="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold">BAIXAR PDF FORNECEDOR</button>
-                            
-                            <div className="bg-emerald-900 text-white p-6 rounded-3xl shadow-xl">
-                                <h3 className="text-emerald-400 font-bold mb-4 border-b border-emerald-800 pb-2">TOTAIS DO LOTE</h3>
-                                {Object.entries(pedidos.reduce((acc, p) => {
-                                    p.itens?.forEach(i => acc[i.raca] = (acc[i.raca] || 0) + Number(i.qtd));
-                                    return acc;
-                                }, {})).map(([raca, total]) => (
-                                    <div key={raca} className="flex justify-between py-2 border-b border-emerald-
+                                        <input type="number" placeholder="Qtd" className="w-20 p-2 border rounded-lg bg-gray-50 text-center" value={it.qtd} onChange={e => {
+                                            const
