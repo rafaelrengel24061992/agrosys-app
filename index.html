@@ -6,13 +6,10 @@
     <title>AgroSys Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -32,7 +29,6 @@
     </div>
 
     <script type="text/babel">
-        // CONFIGURAÇÃO
         const firebaseConfig = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -58,7 +54,6 @@
             
             const vendedor = localStorage.getItem('vendedor') || '';
             const telVendedor = localStorage.getItem('telVendedor') || '';
-
             const SENHA_MESTRA = "1234"; 
 
             React.useEffect(() => {
@@ -93,17 +88,25 @@
                 } catch(e) { alert("Erro ao salvar."); }
             };
 
+            const limparTudo = async () => {
+                if(confirm("CUIDADO: Isso apagará TODOS os pedidos do banco de dados para iniciar um novo carregamento. Tem certeza?")) {
+                    const snap = await db.collection("encomendas").get();
+                    const batch = db.batch();
+                    snap.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    alert("Banco de dados limpo!");
+                }
+            };
+
             const exportarPDF = () => {
                 try {
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF();
                     doc.text("AGROPOSTAI - RESUMO DE PEDIDOS", 14, 15);
-                    
                     const consolidados = {};
                     pedidos.forEach(p => p.itens?.forEach(i => {
                         consolidados[i.raca] = (consolidados[i.raca] || 0) + Number(i.qtd);
                     }));
-
                     const data = Object.entries(consolidados);
                     doc.autoTable({
                         head: [['Raca', 'Qtd']],
@@ -111,97 +114,36 @@
                         startY: 25,
                         headStyles: { fillColor: [5, 150, 105] }
                     });
-                    doc.save("pedidos.pdf");
+                    doc.save("pedidos_agropostai.pdf");
                 } catch (e) { alert("Erro ao gerar PDF."); }
             };
 
             if (!autenticado) {
                 return (
                     <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-900 p-6">
-                        <div className="bg-white p-8 rounded-3xl w-full max-w-xs text-center">
-                            <h2 className="text-2xl font-black text-emerald-700 mb-4">AGROSYS</h2>
+                        <div className="bg-white p-8 rounded-3xl w-full max-w-xs text-center shadow-2xl">
+                            <h2 className="text-2xl font-black text-emerald-700 mb-4 tracking-tighter">AGROSYS</h2>
                             <input type="password" placeholder="Senha" className="input-style mb-4 text-center border-2" value={senhaDigitada} onChange={e => setSenhaDigitada(e.target.value)} onKeyPress={e => e.key === 'Enter' && fazerLogin()} />
-                            <button onClick={fazerLogin} className="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold">ENTRAR</button>
+                            <button onClick={fazerLogin} className="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold active:scale-95 transition-transform">ENTRAR</button>
                         </div>
                     </div>
                 );
             }
 
             return (
-                <div className="max-w-xl mx-auto bg-white min-h-screen">
-                    <div className="flex bg-emerald-600 text-white sticky top-0 z-10">
-                        <button onClick={() => setAba('encomenda')} className={`aba-btn ${aba === 'encomenda' ? 'aba-ativa' : ''}`}>PEDIR</button>
+                <div className="max-w-xl mx-auto bg-white min-h-screen shadow-lg">
+                    <div className="flex bg-emerald-600 text-white sticky top-0 z-10 shadow-md">
+                        <button onClick={() => setAba('encomenda')} className={`aba-btn ${aba === 'encomenda' ? 'aba-ativa' : ''}`}>ENCOMENDA</button>
                         <button onClick={() => setAba('resumo')} className={`aba-btn ${aba === 'resumo' ? 'aba-ativa' : ''}`}>RESUMO</button>
                     </div>
 
                     {aba === 'encomenda' ? (
-                        <div className="p-5 space-y-4">
-                            <input placeholder="Nome do Cliente" className="input-style" value={cliente} onChange={e => setCliente(e.target.value)} />
+                        <div className="p-5 space-y-4 animate-in fade-in duration-500">
+                            <h2 className="font-bold text-emerald-800 text-sm uppercase">Novo Pedido</h2>
+                            <input placeholder="Nome do Cliente" className="input-style border-emerald-100 shadow-sm" value={cliente} onChange={e => setCliente(e.target.value)} />
                             <div className="flex gap-2">
-                                <input placeholder="WhatsApp" className="flex-1 input-style" value={telefone} onChange={e => setTelefone(e.target.value)} />
-                                <button onClick={() => abrirWhats(telefone)} className="bg-green-500 text-white px-4 rounded-xl font-bold">ZAP</button>
+                                <input placeholder="WhatsApp" className="flex-1 input-style border-emerald-100 shadow-sm" value={telefone} onChange={e => setTelefone(e.target.value)} />
+                                <button onClick={() => abrirWhats(telefone)} className="bg-green-500 text-white px-4 rounded-xl font-bold shadow-sm">ZAP</button>
                             </div>
 
-                            <div className="pt-4 border-t">
-                                {linhas.map((l, i) => (
-                                    <div key={i} className="flex gap-2 mb-2">
-                                        <input list="racas" placeholder="Raça" className="flex-1 p-3 border rounded-xl bg-gray-50" value={l.raca} onChange={e => {
-                                            const n = [...linhas]; n[i].raca = e.target.value; setLinhas(n);
-                                        }} />
-                                        <input type="number" placeholder="Qtd" className="w-20 p-3 border rounded-xl bg-gray-50 font-bold" value={l.qtd} onChange={e => {
-                                            const n = [...linhas]; n[i].qtd = e.target.value; setLinhas(n);
-                                        }} />
-                                    </div>
-                                ))}
-                                <datalist id="racas">{RACAS.map(r => <option key={r} value={r} />)}</datalist>
-                                <button onClick={() => setLinhas([...linhas, {raca:'', qtd:''}])} className="text-emerald-600 text-sm font-bold">+ ADICIONAR ITEM</button>
-                            </div>
-                            <button onClick={salvar} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg">SALVAR ENCOMENDA</button>
-                        </div>
-                    ) : (
-                        <div className="p-5 space-y-5">
-                            <button onClick={exportarPDF} className="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold">BAIXAR PDF (FORNECEDOR)</button>
-                            
-                            <div className="bg-gray-50 p-4 rounded-xl border space-y-2">
-                                <input placeholder="Seu Nome" className="w-full p-2 border rounded" defaultValue={vendedor} onBlur={e => localStorage.setItem('vendedor', e.target.value)} />
-                                <input placeholder="Seu WhatsApp" className="w-full p-2 border rounded" defaultValue={telVendedor} onBlur={e => localStorage.setItem('telVendedor', e.target.value)} />
-                            </div>
-
-                            <div className="bg-emerald-900 text-white p-5 rounded-3xl">
-                                <h3 className="text-emerald-400 font-bold mb-3 border-b border-emerald-800 pb-2">TOTAL CARREGAMENTO</h3>
-                                {Object.entries(pedidos.reduce((acc, p) => {
-                                    p.itens?.forEach(i => acc[i.raca] = (acc[i.raca] || 0) + Number(i.qtd));
-                                    return acc;
-                                }, {})).map(([raca, total]) => (
-                                    <div key={raca} className="flex justify-between py-1 border-b border-emerald-800 last:border-0 text-sm">
-                                        <span className="opacity-80">{raca}</span>
-                                        <span className="font-bold">{total}</span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="space-y-2">
-                                <p className="font-bold text-gray-500 text-xs">CLIENTES:</p>
-                                {pedidos.map(p => (
-                                    <div key={p.id} className="p-3 border rounded-xl flex justify-between items-center bg-white text-sm">
-                                        <div onClick={() => abrirWhats(p.telefone)} className="cursor-pointer">
-                                            <div className="font-bold">{p.cliente} <span className="text-green-500 text-[10px] underline">ZAP</span></div>
-                                            <div className="text-[10px] text-gray-400">{p.itens?.map(it => `${it.qtd}x ${it.raca}`).join(', ')}</div>
-                                        </div>
-                                        <button onClick={() => { if(confirm("Excluir?")) db.collection("encomendas").doc(p.id).delete() }} className="text-red-200 font-bold px-2">X</button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        // AGUARDA TUDO CARREGAR PARA RENDERIZAR
-        window.onload = () => {
-            ReactDOM.render(<App />, document.getElementById('root'));
-        };
-    </script>
-</body>
-</html>
+                            <div className="pt-4 border-
