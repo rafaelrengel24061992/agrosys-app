@@ -16,20 +16,17 @@
 
     <style>
         body { background-color: #f0fdf4; font-family: sans-serif; margin: 0; }
-        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; border: none; }
-        .aba-ativa { background: #047857 !important; font-weight: bold; }
-        .input-style { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; outline: none; background: #fff; }
+        .input-style { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; outline: none; }
+        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; border: none; background: #059669; color: white; opacity: 0.7; }
+        .aba-ativa { opacity: 1; font-weight: bold; background: #047857; }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; color: #059669; font-family: sans-serif;">
-            <h2 style="margin-bottom: 10px;">AgroSys</h2>
-            <p style="font-size: 14px; color: #666;">Iniciando sistema seguro...</p>
-        </div>
-    </div>
+    <div id="root"></div>
 
     <script type="text/babel">
+        const { useState, useEffect } = React;
+
         const firebaseConfig = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -39,26 +36,26 @@
             appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
         };
 
+        // Inicializa Firebase de forma resiliente
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
         const RACAS = ["PINTOS P/ CORTE 1 DIA", "PINTOS P/ CORTE BRANCOS RECRIADOS", "PESADÃO CAIPIRA RECRIADO", "CAIPIRA NEGRO RECRIADO", "PESCOÇO PELADO MISTO RECRIADO", "CARIJO MISTO RECRIADO", "MESCLADO CAIPIRA RECRIADO", "PESCOÇO PELADO CARIJO MISTO RECRIADO", "PINTO PESCOÇO PELADO BRANCO RECRIADO", "CODORNAS FÊMEAS", "POSTURA CREME RECRIADA", "POSTURA BRANCA RECRIADA", "POSTURA NEGRA RECRIADA", "POSTURA VERMELHA RECRIADA", "POSTURA CINZA RECRIADA", "POSTURA OVOS AZUIS RECRIADA", "POSTURA VERMELHA OVOS VERDES"];
 
         function App() {
-            const [autenticado, setAutenticado] = React.useState(sessionStorage.getItem('logado') === 'true');
-            const [senhaDigitada, setSenhaDigitada] = React.useState('');
-            const [aba, setAba] = React.useState('encomenda');
-            const [pedidos, setPedidos] = React.useState([]);
-            const [cliente, setCliente] = React.useState('');
-            const [telefone, setTelefone] = React.useState('');
-            const [linhas, setLinhas] = React.useState([{ raca: '', qtd: '' }]);
+            const [autenticado, setAutenticado] = useState(sessionStorage.getItem('logado') === 'true');
+            const [senha, setSenha] = useState('');
+            const [aba, setAba] = useState('encomenda');
+            const [pedidos, setPedidos] = useState([]);
             
-            const [vendedor, setVendedor] = React.useState(localStorage.getItem('vendedor') || '');
-            const [telVendedor, setTelVendedor] = React.useState(localStorage.getItem('telVendedor') || '');
+            // Estados do formulário
+            const [cliente, setCliente] = useState('');
+            const [telefone, setTelefone] = useState('');
+            const [linhas, setLinhas] = useState([{ raca: '', qtd: '' }]);
+            const [vendedor, setVendedor] = useState(localStorage.getItem('vendedor') || '');
+            const [telVendedor, setTelVendedor] = useState(localStorage.getItem('telVendedor') || '');
 
-            const SENHA_MESTRA = "1234"; 
-
-            React.useEffect(() => {
+            useEffect(() => {
                 if (!autenticado) return;
                 const unsub = db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
                     setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -66,121 +63,88 @@
                 return () => unsub();
             }, [autenticado]);
 
-            const fazerLogin = () => {
-                if (senhaDigitada === SENHA_MESTRA) {
+            const login = () => {
+                if (senha === "1234") {
                     setAutenticado(true);
                     sessionStorage.setItem('logado', 'true');
-                } else { alert("Senha incorreta!"); }
-            };
-
-            const abrirWhats = (n) => {
-                const l = n ? n.replace(/\D/g, '') : '';
-                if(l) window.open(`https://wa.me/55${l}`, '_blank');
+                } else { alert("Senha incorreta"); }
             };
 
             const salvar = async () => {
-                if(!cliente || !linhas[0].raca) return alert("Preencha Nome e Raça");
+                if (!cliente || !linhas[0].raca) return alert("Preencha os campos!");
                 try {
                     await db.collection("encomendas").add({
-                        cliente, telefone, itens: linhas.filter(i => i.raca && i.qtd),
+                        cliente, telefone, 
+                        itens: linhas.filter(l => l.raca && l.qtd),
                         data: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     setCliente(''); setTelefone(''); setLinhas([{ raca: '', qtd: '' }]);
-                    alert("Salvo!");
-                } catch(e) { alert("Erro ao salvar."); }
+                    alert("Pedido salvo com sucesso!");
+                } catch (e) { alert("Erro ao conectar ao banco."); }
             };
 
-            const limparTudo = async () => {
-                if(confirm("CUIDADO: Isso apagará TODOS os pedidos para iniciar um novo ciclo. Confirma?")) {
-                    const snap = await db.collection("encomendas").get();
-                    const batch = db.batch();
-                    snap.docs.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                }
-            };
+            const excluir = (id) => { if(confirm("Excluir?")) db.collection("encomendas").doc(id).delete(); };
 
-            const exportarPDF = () => {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                doc.text("AGROPOSTAI - RESUMO DE PEDIDOS", 14, 15);
-                const consolidados = {};
-                pedidos.forEach(p => p.itens?.forEach(i => {
-                    consolidados[i.raca] = (consolidados[i.raca] || 0) + Number(i.qtd);
-                }));
-                const data = Object.entries(consolidados);
-                doc.autoTable({ head: [['Raca', 'Qtd']], body: data, startY: 25, headStyles: { fillColor: [5, 150, 105] } });
-                doc.save("pedidos.pdf");
+            const gerarPDF = () => {
+                const doc = new jspdf.jsPDF();
+                doc.text("AGROPOSTAI - RESUMO", 14, 15);
+                const totais = {};
+                pedidos.forEach(p => p.itens?.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + Number(i.qtd)));
+                doc.autoTable({ head: [['Raça', 'Qtd']], body: Object.entries(totais), startY: 25 });
+                doc.save("encomendas.pdf");
             };
 
             if (!autenticado) {
                 return (
-                    <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-900 p-6">
-                        <div className="bg-white p-8 rounded-3xl w-full max-w-xs text-center">
-                            <h2 className="text-2xl font-black text-emerald-700 mb-4">AGROSYS</h2>
-                            <input type="password" placeholder="Senha" className="input-style mb-4 text-center border-2" value={senhaDigitada} onChange={e => setSenhaDigitada(e.target.value)} onKeyPress={e => e.key === 'Enter' && fazerLogin()} />
-                            <button onClick={fazerLogin} className="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold">ENTRAR</button>
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-900 p-6 text-center">
+                        <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm">
+                            <h1 className="text-3xl font-black text-emerald-700 mb-6">AGROSYS</h1>
+                            <input type="password" placeholder="Senha de Acesso" className="input-style mb-4 text-center text-lg" onChange={e => setSenha(e.target.value)} onKeyPress={e => e.key === 'Enter' && login()} />
+                            <button onClick={login} className="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-lg">ENTRAR</button>
                         </div>
                     </div>
                 );
             }
 
             return (
-                <div className="max-w-xl mx-auto bg-white min-h-screen">
-                    <div className="flex bg-emerald-600 text-white sticky top-0 z-10">
-                        <button onClick={() => setAba('encomenda')} className={`aba-btn ${aba === 'encomenda' ? 'aba-ativa' : ''}`}>PEDIR</button>
+                <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl">
+                    <div className="flex sticky top-0 z-50 shadow-md">
+                        <button onClick={() => setAba('encomenda')} className={`aba-btn ${aba === 'encomenda' ? 'aba-ativa' : ''}`}>PEDIDO</button>
                         <button onClick={() => setAba('resumo')} className={`aba-btn ${aba === 'resumo' ? 'aba-ativa' : ''}`}>RESUMO</button>
                     </div>
 
                     {aba === 'encomenda' ? (
-                        <div className="p-5 space-y-4">
-                            <input placeholder="Nome do Cliente" className="input-style" value={cliente} onChange={e => setCliente(e.target.value)} />
-                            <div className="flex gap-2">
-                                <input placeholder="WhatsApp" className="flex-1 input-style" value={telefone} onChange={e => setTelefone(e.target.value)} />
-                                <button onClick={() => abrirWhats(telefone)} className="bg-green-500 text-white px-4 rounded-xl font-bold">ZAP</button>
+                        <div className="p-6 space-y-5">
+                            <div className="space-y-3">
+                                <label className="text-xs font-bold text-gray-400 uppercase">Dados do Cliente</label>
+                                <input placeholder="Nome Completo" className="input-style" value={cliente} onChange={e => setCliente(e.target.value)} />
+                                <input placeholder="WhatsApp" className="input-style" value={telefone} onChange={e => setTelefone(e.target.value)} />
                             </div>
-                            <div className="pt-4">
+                            <div className="space-y-3 pt-4 border-t">
+                                <label className="text-xs font-bold text-gray-400 uppercase">Aves Encomendadas</label>
                                 {linhas.map((l, i) => (
-                                    <div key={i} className="flex gap-2 mb-3">
-                                        <input list="racas" placeholder="Ave" className="flex-1 p-3 border rounded-xl bg-gray-50" value={l.raca} onChange={e => {
+                                    <div key={i} className="flex gap-2">
+                                        <input list="racas" placeholder="Raça" className="flex-1 p-3 border rounded-xl bg-gray-50 text-sm" value={l.raca} onChange={e => {
                                             const n = [...linhas]; n[i].raca = e.target.value; setLinhas(n);
                                         }} />
-                                        <input type="number" placeholder="Qtd" className="w-20 p-3 border rounded-xl bg-gray-50 font-bold" value={l.qtd} onChange={e => {
+                                        <input type="number" placeholder="Qtd" className="w-20 p-3 border rounded-xl bg-gray-50 font-bold text-center" value={l.qtd} onChange={e => {
                                             const n = [...linhas]; n[i].qtd = e.target.value; setLinhas(n);
                                         }} />
                                     </div>
                                 ))}
                                 <datalist id="racas">{RACAS.map(r => <option key={r} value={r} />)}</datalist>
-                                <button onClick={() => setLinhas([...linhas, {raca:'', qtd:''}])} className="text-emerald-600 text-xs font-bold">+ MAIS RAÇAS</button>
+                                <button onClick={() => setLinhas([...linhas, {raca:'', qtd:''}])} className="text-emerald-600 text-xs font-bold">+ ADICIONAR LINHA</button>
                             </div>
-                            <button onClick={salvar} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg">SALVAR PEDIDO</button>
+                            <button onClick={salvar} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg mt-6">SALVAR ENCOMENDA</button>
                         </div>
                     ) : (
-                        <div className="p-5 space-y-5">
-                            <button onClick={exportarPDF} className="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold uppercase text-xs">Baixar PDF</button>
+                        <div className="p-6 space-y-6 text-sm">
+                            <button onClick={gerarPDF} className="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold">BAIXAR PDF FORNECEDOR</button>
                             
-                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                                <input placeholder="Vendedor" className="w-full p-2 border rounded-lg text-sm mb-2" value={vendedor} onChange={e => {setVendedor(e.target.value); localStorage.setItem('vendedor', e.target.value)}} />
-                                <div className="flex gap-2">
-                                    <input placeholder="WhatsApp" className="flex-1 p-2 border rounded-lg text-sm" value={telVendedor} onChange={e => {setTelVendedor(e.target.value); localStorage.setItem('telVendedor', e.target.value)}} />
-                                    <button onClick={() => abrirWhats(telVendedor)} className="bg-green-500 text-white px-3 rounded-lg">ZAP</button>
-                                </div>
-                            </div>
-
-                            <div className="bg-emerald-950 text-white p-6 rounded-3xl">
-                                <h3 className="text-emerald-400 font-bold mb-3 border-b border-emerald-900 pb-2 text-xs">TOTAIS</h3>
+                            <div className="bg-emerald-900 text-white p-6 rounded-3xl shadow-xl">
+                                <h3 className="text-emerald-400 font-bold mb-4 border-b border-emerald-800 pb-2">TOTAIS DO LOTE</h3>
                                 {Object.entries(pedidos.reduce((acc, p) => {
                                     p.itens?.forEach(i => acc[i.raca] = (acc[i.raca] || 0) + Number(i.qtd));
                                     return acc;
                                 }, {})).map(([raca, total]) => (
-                                    <div key={raca} className="flex justify-between py-1 border-b border-emerald-900 last:border-0 text-sm">
-                                        <span className="opacity-70 text-xs">{raca}</span>
-                                        <span className="font-bold">{total}</span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="space-y-2">
-                                {pedidos.map(p => (
-                                    <div key={p.id} className="p-3 border rounded-xl flex justify-between items-center bg-white text-sm">
-                                        <div>
-                                            <div className="font-bold" onClick
+                                    <div key={raca} className="flex justify-between py-2 border-b border-emerald-
