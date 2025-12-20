@@ -6,27 +6,70 @@
     <title>AgroSys Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body { background-color: #f0fdf4; margin: 0; font-family: sans-serif; }
-        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; border: none; background: #059669; color: white; opacity: 0.6; }
-        .aba-ativa { opacity: 1; font-weight: bold; background: #047857; }
-        .card { background: white; border-radius: 15px; padding: 20px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { background-color: #f0fdf4; font-family: sans-serif; margin: 0; }
+        .aba-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; background: #059669; color: white; opacity: 0.6; font-weight: bold; }
+        .aba-ativa { opacity: 1; background: #047857; border-bottom: 4px solid #fff; }
+        .input-style { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; }
+        .card-pedido { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
+        #tela-login { display: flex; }
+        #app-content { display: none; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
 
-    <script type="text/babel">
+    <div id="tela-login" class="flex flex-col items-center justify-center min-h-screen bg-emerald-900 p-6">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
+            <h1 class="text-3xl font-black text-emerald-700 mb-6">AGROSYS</h1>
+            <input type="password" id="senha" placeholder="Senha de Acesso" class="input-style text-center text-lg border-2">
+            <button onclick="fazerLogin()" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-lg hover:bg-emerald-700">ENTRAR</button>
+        </div>
+    </div>
+
+    <div id="app-content">
+        <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl">
+            <div class="flex sticky top-0 z-50 shadow-md">
+                <button id="btn-pedir" onclick="mudarAba('pedir')" class="aba-btn aba-ativa">PEDIDO</button>
+                <button id="btn-resumo" onclick="mudarAba('resumo')" class="aba-btn">RESUMO</button>
+            </div>
+
+            <div id="aba-pedir" class="p-6">
+                <input type="text" id="cliente" placeholder="Nome do Cliente" class="input-style">
+                <input type="text" id="telefone" placeholder="WhatsApp (DDD)" class="input-style">
+                
+                <div class="mt-4 pt-4 border-t">
+                    <p class="text-xs font-bold text-gray-400 mb-2 uppercase">Itens da Encomenda</p>
+                    <div id="lista-itens">
+                        <div class="flex gap-2 mb-2 item-linha">
+                            <input type="text" placeholder="Raça" class="flex-1 p-3 border rounded-xl bg-gray-50 raca-input">
+                            <input type="number" placeholder="Qtd" class="w-20 p-3 border rounded-xl bg-gray-50 text-center font-bold qtd-input">
+                        </div>
+                    </div>
+                    <button onclick="adicionarLinha()" class="text-emerald-600 text-xs font-bold">+ ADICIONAR ITEM</button>
+                </div>
+                
+                <button onclick="salvarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg mt-8">SALVAR ENCOMENDA</button>
+            </div>
+
+            <div id="aba-resumo" class="p-6 hidden">
+                <div class="bg-emerald-900 text-white p-6 rounded-3xl mb-6 shadow-xl">
+                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-800 pb-2">TOTAIS DO LOTE</h3>
+                    <div id="totais-lista"></div>
+                </div>
+
+                <h3 class="font-bold text-gray-700 mb-4 uppercase text-xs">Pedidos Individuais</h3>
+                <div id="pedidos-lista"></div>
+
+                <button onclick="limparBanco()" class="w-full text-red-400 text-[10px] font-bold py-10 uppercase tracking-widest mt-10">Zerar Tudo para Novo Ciclo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -35,69 +78,46 @@
             messagingSenderId: "85637972190",
             appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
         };
-
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const RACAS = ["PINTOS P/ CORTE 1 DIA", "PINTOS P/ CORTE BRANCOS RECRIADOS", "PESADÃO CAIPIRA RECRIADO", "CAIPIRA NEGRO RECRIADO", "PESCOÇO PELADO MISTO RECRIADO", "CARIJO MISTO RECRIADO", "MESCLADO CAIPIRA RECRIADO", "PESCOÇO PELADO CARIJO MISTO RECRIADO", "PINTO PESCOÇO PELADO BRANCO RECRIADO", "CODORNAS FÊMEAS", "POSTURA CREME RECRIADA", "POSTURA BRANCA RECRIADA", "POSTURA NEGRA RECRIADA", "POSTURA VERMELHA RECRIADA", "POSTURA CINZA RECRIADA", "POSTURA OVOS AZUIS RECRIADA", "POSTURA VERMELHA OVOS VERDES"];
+        // LOGIN
+        function fazerLogin() {
+            const senha = document.getElementById('senha').value;
+            if (senha === "1234") {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                escutarPedidos();
+            } else { alert("Senha incorreta"); }
+        }
 
-        function App() {
-            const [logado, setLogado] = React.useState(sessionStorage.getItem('ok') === 's');
-            const [senha, setSenha] = React.useState('');
-            const [aba, setAba] = React.useState('pedir');
-            const [pedidos, setPedidos] = React.useState([]);
-            const [form, setForm] = React.useState({ cliente: '', tel: '', itens: [{ raca: '', qtd: '' }] });
+        // MUDAR ABAS
+        function mudarAba(aba) {
+            if (aba === 'pedir') {
+                document.getElementById('aba-pedir').classList.remove('hidden');
+                document.getElementById('aba-resumo').classList.add('hidden');
+                document.getElementById('btn-pedir').classList.add('aba-ativa');
+                document.getElementById('btn-resumo').classList.remove('aba-ativa');
+            } else {
+                document.getElementById('aba-pedir').classList.add('hidden');
+                document.getElementById('aba-resumo').classList.remove('hidden');
+                document.getElementById('btn-pedir').classList.remove('aba-ativa');
+                document.getElementById('btn-resumo').classList.add('aba-ativa');
+            }
+        }
 
-            React.useEffect(() => {
-                if (!logado) return;
-                return db.collection("encomendas").orderBy("data", "desc").onSnapshot(s => {
-                    setPedidos(s.docs.map(d => ({ id: d.id, ...d.data() })));
-                });
-            }, [logado]);
+        // ADICIONAR LINHA DE ITEM
+        function adicionarLinha() {
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 mb-2 item-linha';
+            div.innerHTML = `
+                <input type="text" placeholder="Raça" class="flex-1 p-3 border rounded-xl bg-gray-50 raca-input">
+                <input type="number" placeholder="Qtd" class="w-20 p-3 border rounded-xl bg-gray-50 text-center font-bold qtd-input">
+            `;
+            document.getElementById('lista-itens').appendChild(div);
+        }
 
-            const login = () => {
-                if (senha === "1234") {
-                    setLogado(true);
-                    sessionStorage.setItem('ok', 's');
-                } else alert("Incorreto");
-            };
-
-            const salvar = async () => {
-                if (!form.cliente || !form.itens[0].raca) return alert("Preencha tudo");
-                await db.collection("encomendas").add({
-                    ...form,
-                    data: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                setForm({ cliente: '', tel: '', itens: [{ raca: '', qtd: '' }] });
-                alert("Salvo!");
-            };
-
-            if (!logado) return (
-                <div className="flex items-center justify-center min-h-screen bg-emerald-900 p-6">
-                    <div className="bg-white p-8 rounded-3xl w-full max-w-xs shadow-2xl">
-                        <h1 className="text-2xl font-black text-emerald-700 text-center mb-6">AGROSYS</h1>
-                        <input type="password" placeholder="Senha" className="w-full p-3 border rounded-xl mb-4 text-center" onChange={e => setSenha(e.target.value)} />
-                        <button onClick={login} className="w-full bg-emerald-600 text-white p-3 rounded-xl font-bold">ENTRAR</button>
-                    </div>
-                </div>
-            );
-
-            return (
-                <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl">
-                    <div className="flex bg-emerald-600 text-white">
-                        <div onClick={() => setAba('pedir')} className={`aba-btn ${aba === 'pedir' ? 'aba-ativa' : ''}`}>PEDIR</div>
-                        <div onClick={() => setAba('resumo')} className={`aba-btn ${aba === 'resumo' ? 'aba-ativa' : ''}`}>RESUMO</div>
-                    </div>
-
-                    {aba === 'pedir' ? (
-                        <div className="p-6 space-y-4">
-                            <input placeholder="Nome Cliente" className="w-full p-3 border rounded-xl" value={form.cliente} onChange={e => setForm({...form, cliente: e.target.value})} />
-                            <input placeholder="WhatsApp" className="w-full p-3 border rounded-xl" value={form.tel} onChange={e => setForm({...form, tel: e.target.value})} />
-                            <div className="pt-4 border-t">
-                                {form.itens.map((it, i) => (
-                                    <div key={i} className="flex gap-2 mb-2">
-                                        <input list="racas" placeholder="Raça" className="flex-1 p-2 border rounded-lg bg-gray-50" value={it.raca} onChange={e => {
-                                            const n = [...form.itens]; n[i].raca = e.target.value; setForm({...form, itens: n});
-                                        }} />
-                                        <input type="number" placeholder="Qtd" className="w-20 p-2 border rounded-lg bg-gray-50 text-center" value={it.qtd} onChange={e => {
-                                            const
+        // SALVAR NO FIREBASE
+        async function salvarPedido() {
+            const cliente = document.getElementById('cliente').value;
+            const telefone = document
