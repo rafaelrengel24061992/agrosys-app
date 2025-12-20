@@ -14,7 +14,6 @@
         .aba-ativa { opacity: 1; background: #047857; border-bottom: 4px solid #fff; }
         .input-style { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; outline: none; }
         .card-pedido { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-        #app-content { display: none; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -22,53 +21,56 @@
 
     <div id="tela-login" class="flex flex-col items-center justify-center min-h-screen bg-emerald-900 p-6">
         <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
-            <h1 class="text-3xl font-black text-emerald-700 mb-6 tracking-tighter">AGROSYS</h1>
-            <input type="password" id="senha" placeholder="Senha de Acesso" class="input-style text-center text-lg border-2">
-            <button onclick="fazerLogin()" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-lg hover:bg-emerald-700 active:scale-95 transition-all">ENTRAR</button>
+            <h1 class="text-3xl font-black text-emerald-700 mb-6">AGROSYS</h1>
+            <input type="password" id="senha" placeholder="Senha" class="input-style text-center text-lg border-2">
+            <button onclick="fazerLogin()" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-lg">ENTRAR</button>
         </div>
     </div>
 
-    <div id="app-content">
+    <div id="app-content" class="hidden">
         <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl">
-            <div class="flex sticky top-0 z-50 shadow-md">
+            <div class="flex sticky top-0 z-50">
                 <button id="btn-pedir" onclick="mudarAba('pedir')" class="aba-btn aba-ativa">PEDIDO</button>
                 <button id="btn-resumo" onclick="mudarAba('resumo')" class="aba-btn">RESUMO</button>
             </div>
 
             <div id="aba-pedir" class="p-6">
                 <input type="text" id="cliente" placeholder="Nome do Cliente" class="input-style">
-                <input type="text" id="telefone" placeholder="WhatsApp (DDD)" class="input-style">
+                <input type="text" id="telefone" placeholder="WhatsApp" class="input-style">
                 
                 <div class="mt-4 pt-4 border-t">
-                    <p class="text-xs font-bold text-gray-400 mb-2 uppercase">Itens da Encomenda</p>
+                    <p class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Itens</p>
                     <div id="lista-itens">
                         <div class="flex gap-2 mb-2 item-linha">
                             <input type="text" placeholder="Raça" class="flex-1 p-3 border rounded-xl bg-gray-50 raca-input">
                             <input type="number" placeholder="Qtd" class="w-20 p-3 border rounded-xl bg-gray-50 text-center font-bold qtd-input">
                         </div>
                     </div>
-                    <button onclick="adicionarLinha()" class="text-emerald-600 text-xs font-bold">+ ADICIONAR ITEM</button>
+                    <button onclick="adicionarLinha()" class="text-emerald-600 text-xs font-bold mt-2">+ ADICIONAR ITEM</button>
                 </div>
                 
-                <button onclick="salvarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg mt-8 active:scale-95">SALVAR ENCOMENDA</button>
+                <button onclick="salvarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold shadow-lg mt-8">SALVAR NO BANCO</button>
             </div>
 
             <div id="aba-resumo" class="p-6 hidden">
                 <div class="bg-emerald-950 text-white p-6 rounded-3xl mb-6 shadow-xl">
-                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-xs uppercase tracking-widest">Totais do Carregamento</h3>
+                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-xs uppercase tracking-widest">Totais Geral</h3>
                     <div id="totais-lista" class="space-y-2"></div>
                 </div>
 
-                <h3 class="font-bold text-gray-400 mb-4 uppercase text-[10px] tracking-widest px-1">Pedidos Individuais</h3>
                 <div id="pedidos-lista" class="space-y-2"></div>
 
-                <button onclick="limparBanco()" class="w-full text-red-400 text-[10px] font-bold py-10 uppercase tracking-widest mt-10 opacity-50 hover:opacity-100">Zerar Banco de Dados</button>
+                <div class="pt-10">
+                    <button onclick="limparBanco()" class="w-full bg-red-50 text-red-500 text-[10px] font-bold py-4 rounded-xl border border-red-100 uppercase tracking-widest">
+                        🗑️ Iniciar Novo Ciclo (Zerar Tudo)
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. CONFIGURAÇÃO FIREBASE
+        // FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -77,22 +79,86 @@
             messagingSenderId: "85637972190",
             appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
         };
-        
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 2. FUNÇÃO DE LOGIN CORRIGIDA
+        // LOGIN
         function fazerLogin() {
-            const senhaDigitada = document.getElementById('senha').value;
-            const SENHA_CORRETA = "1234"; // Troque aqui se desejar
+            const senha = document.getElementById('senha').value;
+            if (senha === "1234") {
+                sessionStorage.setItem('agrosys_logado', 'true');
+                mostrarApp();
+            } else {
+                alert("Senha incorreta");
+            }
+        }
 
-            if (senhaDigitada === SENHA_CORRETA) {
-                // Esconde login e mostra app
-                document.getElementById('tela-login').classList.add('hidden');
-                document.getElementById('app-content').style.display = 'block';
-                
-                // Salva o login na sessão do navegador
-                sessionStorage.setItem('logado', 'true');
-                
-                // Inicia a esc
+        function mostrarApp() {
+            document.getElementById('tela-login').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            escutarBanco();
+        }
+
+        // Verifica se já logou antes
+        if (sessionStorage.getItem('agrosys_logado') === 'true') {
+            mostrarApp();
+        }
+
+        // ABAS
+        function mudarAba(aba) {
+            if (aba === 'pedir') {
+                document.getElementById('aba-pedir').classList.remove('hidden');
+                document.getElementById('aba-resumo').classList.add('hidden');
+                document.getElementById('btn-pedir').classList.add('aba-ativa');
+                document.getElementById('btn-resumo').classList.remove('aba-ativa');
+            } else {
+                document.getElementById('aba-pedir').classList.add('hidden');
+                document.getElementById('aba-resumo').classList.remove('hidden');
+                document.getElementById('btn-pedir').classList.remove('aba-ativa');
+                document.getElementById('btn-resumo').classList.add('aba-ativa');
+            }
+        }
+
+        // FORMULÁRIO
+        function adicionarLinha() {
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 mb-2 item-linha';
+            div.innerHTML = '<input type="text" placeholder="Raça" class="flex-1 p-3 border rounded-xl bg-gray-50 raca-input"><input type="number" placeholder="Qtd" class="w-20 p-3 border rounded-xl bg-gray-50 text-center font-bold qtd-input">';
+            document.getElementById('lista-itens').appendChild(div);
+        }
+
+        async function salvarPedido() {
+            const cliente = document.getElementById('cliente').value;
+            const telefone = document.getElementById('telefone').value;
+            const linhas = document.querySelectorAll('.item-linha');
+            const itens = [];
+            
+            linhas.forEach(l => {
+                const raca = l.querySelector('.raca-input').value;
+                const qtd = l.querySelector('.qtd-input').value;
+                if(raca && qtd) itens.push({ raca: raca.toUpperCase(), qtd: Number(qtd) });
+            });
+
+            if (!cliente || itens.length === 0) return alert("Preencha o nome e os itens");
+
+            try {
+                await db.collection("encomendas").add({
+                    cliente, telefone, itens, data: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("Salvo!");
+                document.getElementById('cliente').value = '';
+                document.getElementById('telefone').value = '';
+                document.getElementById('lista-itens').innerHTML = '<div class="flex gap-2 mb-2 item-linha"><input type="text" placeholder="Raça" class="flex-1 p-3 border rounded-xl bg-gray-50 raca-input"><input type="number" placeholder="Qtd" class="w-20 p-3 border rounded-xl bg-gray-50 text-center font-bold qtd-input"></div>';
+            } catch (e) { alert("Erro ao salvar"); }
+        }
+
+        // BANCO DE DADOS
+        function escutarBanco() {
+            db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
+                const lista = document.getElementById('pedidos-lista');
+                const totaisLista = document.getElementById('totais-lista');
+                lista.innerHTML = '';
+                totaisLista.innerHTML = '';
+                let totaisMap = {};
+
+                snap.forEach(
