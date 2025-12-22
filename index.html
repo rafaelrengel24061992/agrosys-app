@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AgroSys Pro</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -12,13 +11,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body { background-color: #064e3b; margin: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #064e3b; margin: 0; font-family: sans-serif; }
         .aba-btn { flex: 1; padding: 18px; text-align: center; cursor: pointer; color: white; font-weight: bold; background: #065f46; border: none; font-size: 11px; text-transform: uppercase; }
         .aba-ativa { background: #059669; border-bottom: 4px solid #34d399; }
         .hidden { display: none !important; }
-        input { outline: none; border-radius: 12px; }
-        /* Melhora a visualização do autocomplete no celular */
-        input::-webkit-calendar-picker-indicator { opacity: 1; }
+        .btn-zap { background-color: #25D366 !important; color: white !important; font-weight: bold; padding: 10px 15px; border-radius: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; min-width: 60px; }
     </style>
 </head>
 <body>
@@ -44,61 +41,59 @@
 
     <div id="section-login" class="flex flex-col items-center justify-center min-h-screen p-6">
         <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
-            <h1 class="text-3xl font-black text-emerald-800 mb-2 italic">AGROSYS</h1>
-            <p class="text-gray-400 text-[10px] mb-8 uppercase tracking-widest">Acesso Restrito</p>
-            <input type="tel" id="input-senha" placeholder="Senha" class="w-full p-4 border-2 border-gray-100 mb-4 text-center text-2xl focus:border-emerald-500">
-            <button onclick="tentarEntrar()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold text-lg active:scale-95 transition-transform">ENTRAR</button>
+            <h1 class="text-3xl font-black text-emerald-800 mb-6">AGROSYS</h1>
+            <input type="password" id="input-senha" placeholder="Senha" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 text-center text-2xl outline-none">
+            <button onclick="tentarEntrar()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold text-lg">ENTRAR</button>
         </div>
     </div>
 
     <div id="section-app" class="hidden">
         <div class="max-w-md mx-auto bg-gray-50 min-h-screen flex flex-col shadow-2xl">
-            
             <div class="flex sticky top-0 z-50">
                 <button id="tab-pedir" onclick="navegar('pedir')" class="aba-btn aba-ativa">Novo Pedido</button>
                 <button id="tab-resumo" onclick="navegar('resumo')" class="aba-btn">Resumo Lote</button>
             </div>
 
             <div id="conteudo-pedir" class="p-6 space-y-4">
-                <input type="text" id="f-cliente" placeholder="Nome do Cliente" class="w-full p-4 bg-white border">
-                <input type="tel" id="f-tel" placeholder="WhatsApp (Ex: 11999999999)" class="w-full p-4 bg-white border">
+                <input type="text" id="f-cliente" placeholder="Nome do Cliente" class="w-full p-4 bg-white border rounded-2xl">
+                <input type="tel" id="f-tel" placeholder="WhatsApp (DDD+Número)" class="w-full p-4 bg-white border rounded-2xl">
                 
                 <div class="pt-4 border-t">
-                    <p class="text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Itens</p>
                     <div id="container-itens" class="space-y-3">
                         <div class="flex gap-2 item-row">
-                            <input type="text" list="racas-oficiais" placeholder="Escolha a Raça" class="flex-1 p-3 bg-white border text-sm val-raca">
-                            <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 border-emerald-100 border text-center font-bold text-emerald-800 val-qtd">
+                            <input type="text" list="racas-oficiais" placeholder="Escolha a Raça" class="flex-1 p-3 bg-white border text-sm rounded-xl val-raca">
+                            <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 border border-emerald-100 text-center font-bold text-emerald-800 rounded-xl val-qtd">
                         </div>
                     </div>
                     <button onclick="maisLinha()" class="mt-4 text-emerald-700 text-xs font-black uppercase">+ Adicionar Outra Raça</button>
                 </div>
-                <button onclick="enviarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg mt-6 active:bg-emerald-800">SALVAR NO BANCO</button>
+                <button onclick="enviarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg mt-6">SALVAR NO BANCO</button>
             </div>
 
             <div id="conteudo-resumo" class="p-6 hidden space-y-6">
-                <div class="space-y-3">
-                    <button onclick="gerarPDF()" class="w-full bg-emerald-900 text-white p-4 rounded-xl font-bold text-xs uppercase shadow-sm">📄 Gerar PDF do Lote</button>
+                <div class="space-y-2">
+                    <button onclick="gerarPDF()" class="w-full bg-emerald-900 text-white p-4 rounded-xl font-bold text-xs uppercase">📄 Gerar PDF do Lote</button>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="vend-nome" placeholder="Seu Nome" class="p-3 border text-xs bg-white" onblur="salvarPerfil()">
-                        <input type="tel" id="vend-tel" placeholder="Zap Fornecedor" class="p-3 border text-xs bg-white" onblur="salvarPerfil()">
+                        <input type="text" id="vend-nome" placeholder="Seu Nome" class="p-3 border text-xs bg-white rounded-xl">
+                        <input type="tel" id="vend-tel" placeholder="Zap Fornecedor" class="p-3 border text-xs bg-white rounded-xl">
                     </div>
-                    <button onclick="enviarZapFornecedor()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase shadow-sm">Enviar Resumo p/ Fornecedor</button>
+                    <button onclick="enviarZapFornecedor()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase">Enviar Resumo p/ WhatsApp</button>
                 </div>
 
-                <div class="bg-emerald-950 text-white p-6 rounded-[2.5rem] shadow-xl">
-                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-[10px] uppercase tracking-widest">Soma Total do Lote</h3>
-                    <div id="render-totais" class="space-y-2 text-sm font-medium"></div>
+                <div class="bg-emerald-950 text-white p-6 rounded-[2rem]">
+                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-[10px] uppercase">Totais Gerais</h3>
+                    <div id="render-totais" class="space-y-2 text-sm"></div>
                 </div>
 
-                <div id="render-pedidos" class="space-y-3"></div>
+                <div id="render-pedidos" class="space-y-3 pb-20"></div>
 
-                <button onclick="resetarTudo()" class="w-full text-red-400 text-[10px] font-bold py-10 uppercase tracking-widest opacity-60">🗑️ Zerar Banco (Novo Ciclo)</button>
+                <button onclick="resetarTudo()" class="w-full text-red-400 text-[10px] font-bold py-10 uppercase">🗑️ Zerar Banco (Novo Ciclo)</button>
             </div>
         </div>
     </div>
 
     <script>
+        // CONFIGURAÇÃO MANUAL PARA NÃO DEPENDER DE EXTERNOS
         const config = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -109,25 +104,25 @@
         };
         firebase.initializeApp(config);
         const db = firebase.firestore();
-        let listaLocal = [];
+        let listaGlobal = [];
 
+        // SENHA - LÓGICA DIRETA
         function tentarEntrar() {
-            if(document.getElementById('input-senha').value === "1234") {
-                localStorage.setItem('agro_auth_final', 'true');
-                abrirApp();
-            } else { alert("Senha incorreta!"); }
+            const s = document.getElementById('input-senha').value;
+            if(s === "1234") {
+                localStorage.setItem('agrosys_ok', 'true');
+                mostrarApp();
+            } else { alert("Senha Errada"); }
         }
 
-        function abrirApp() {
+        function mostrarApp() {
             document.getElementById('section-login').classList.add('hidden');
             document.getElementById('section-app').classList.remove('hidden');
             document.body.style.backgroundColor = "#f3f4f6";
-            document.getElementById('vend-nome').value = localStorage.getItem('agro_v') || '';
-            document.getElementById('vend-tel').value = localStorage.getItem('agro_t') || '';
             escutarBanco();
         }
 
-        if(localStorage.getItem('agro_auth_final') === 'true') abrirApp();
+        if(localStorage.getItem('agrosys_ok') === 'true') { mostrarApp(); }
 
         function navegar(aba) {
             document.getElementById('conteudo-pedir').classList.toggle('hidden', aba !== 'pedir');
@@ -139,13 +134,13 @@
         function maisLinha() {
             const div = document.createElement('div');
             div.className = 'flex gap-2 item-row';
-            div.innerHTML = `<input type="text" list="racas-oficiais" placeholder="Escolha a Raça" class="flex-1 p-3 bg-white border text-sm val-raca"><input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 border border-emerald-100 text-center font-bold text-emerald-800 val-qtd">`;
+            div.innerHTML = `<input type="text" list="racas-oficiais" placeholder="Escolha a Raça" class="flex-1 p-3 bg-white border text-sm rounded-xl val-raca"><input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 border border-emerald-100 text-center font-bold text-emerald-800 rounded-xl val-qtd">`;
             document.getElementById('container-itens').appendChild(div);
         }
 
         async function enviarPedido() {
-            const cliente = document.getElementById('f-cliente').value;
-            const tel = document.getElementById('f-tel').value.replace(/\D/g, '');
+            const c = document.getElementById('f-cliente').value;
+            const t = document.getElementById('f-tel').value.replace(/\D/g, '');
             const rows = document.querySelectorAll('.item-row');
             let itens = [];
             rows.forEach(r => {
@@ -153,97 +148,80 @@
                 const qtd = r.querySelector('.val-qtd').value;
                 if(raca && qtd) itens.push({ raca: raca.toUpperCase(), qtd: Number(qtd) });
             });
-            if(!cliente || itens.length === 0) return alert("Preencha o nome e itens");
-            await db.collection("encomendas").add({ cliente, telefone: tel, itens, data: firebase.firestore.FieldValue.serverTimestamp() });
-            alert("Pedido Salvo!");
+            if(!c || itens.length === 0) return alert("Preencha tudo");
+            await db.collection("encomendas").add({ cliente: c, telefone: t, itens, data: firebase.firestore.FieldValue.serverTimestamp() });
+            alert("Salvo!");
             location.reload();
         }
 
         function escutarBanco() {
             db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
-                const rPedidos = document.getElementById('render-pedidos');
-                const rTotais = document.getElementById('render-totais');
-                rPedidos.innerHTML = ''; rTotais.innerHTML = '';
-                let totaisMap = {};
-                listaLocal = [];
+                const rP = document.getElementById('render-pedidos');
+                const rT = document.getElementById('render-totais');
+                rP.innerHTML = ''; rT.innerHTML = '';
+                let totais = {};
+                listaGlobal = [];
 
                 snap.forEach(doc => {
-                    const p = doc.data();
-                    listaLocal.push(p);
+                    const d = doc.data();
+                    listaGlobal.push(d);
                     
-                    // Botão de WhatsApp Reforçado
-                    const linkZap = p.telefone ? `<a href="https://wa.me/55${p.telefone}" target="_blank" style="background:#25D366; padding:10px 14px; border-radius:12px; color:white; font-weight:black; font-size:10px; text-decoration:none; display:inline-block;">ZAP</a>` : '';
+                    // BOTÃO WHATSAPP - SE O TELEFONE EXISTIR
+                    let botaoZap = '';
+                    if(d.telefone && d.telefone.length > 5) {
+                        botaoZap = `<a href="https://wa.me/55${d.telefone}" target="_blank" class="btn-zap">ZAP</a>`;
+                    }
 
-                    const div = document.createElement('div');
-                    div.className = 'bg-white p-4 border border-gray-200 rounded-2xl flex justify-between items-center shadow-sm';
-                    div.innerHTML = `
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-4 border rounded-2xl flex justify-between items-center shadow-sm';
+                    card.innerHTML = `
                         <div class="flex items-center gap-3">
-                            ${linkZap}
+                            ${botaoZap}
                             <div>
-                                <div class="font-bold text-emerald-950 text-[14px]">${p.cliente}</div>
-                                <div class="text-[9px] text-gray-400 uppercase font-medium leading-tight">${p.itens.map(i => i.qtd+'x '+i.raca).join(' | ')}</div>
+                                <div class="font-bold text-emerald-950 text-sm">${d.cliente}</div>
+                                <div class="text-[9px] text-gray-400 uppercase">${d.itens.map(i => i.qtd+'x '+i.raca).join(' | ')}</div>
                             </div>
                         </div>
-                        <button onclick="deletar('${doc.id}')" class="text-red-200 text-2xl font-light px-2">×</button>
+                        <button onclick="deletar('${doc.id}')" class="text-red-200 text-2xl px-2">×</button>
                     `;
-                    rPedidos.appendChild(div);
-                    p.itens.forEach(i => totaisMap[i.raca] = (totaisMap[i.raca] || 0) + i.qtd);
+                    rP.appendChild(card);
+                    d.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd);
                 });
 
-                Object.entries(totaisMap).sort().forEach(([r, q]) => {
-                    rTotais.innerHTML += `<div class="flex justify-between border-b border-emerald-900/40 py-2 last:border-0">
-                        <span class="opacity-80 text-[10px] uppercase pr-4">${r}</span>
-                        <span class="font-bold text-lg">${q}</span>
-                    </div>`;
+                Object.entries(totais).sort().forEach(([r, q]) => {
+                    rT.innerHTML += `<div class="flex justify-between border-b border-emerald-900/40 py-2"><span>${r}</span><b>${q}</b></div>`;
                 });
             });
         }
 
-        function salvarPerfil() {
-            localStorage.setItem('agro_v', document.getElementById('vend-nome').value);
-            localStorage.setItem('agro_t', document.getElementById('vend-tel').value);
-        }
-
-        function enviarZapFornecedor() {
-            const fone = document.getElementById('vend-tel').value.replace(/\D/g, '');
-            if(!fone) return alert("Digite o Zap do Fornecedor");
-            let msg = "*RESUMO DE CARREGAMENTO*\n\n";
-            let totais = {};
-            listaLocal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
-            Object.entries(totais).sort().forEach(([r, q]) => msg += `• ${r}: ${q}\n`);
-            window.open(`https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`);
-        }
-
-        async function deletar(id) { if(confirm("Deseja excluir este pedido?")) await db.collection("encomendas").doc(id).delete(); }
+        async function deletar(id) { if(confirm("Excluir?")) await db.collection("encomendas").doc(id).delete(); }
         
         async function resetarTudo() {
-            if(confirm("⚠️ ATENÇÃO: Deseja apagar TUDO para iniciar um novo lote?")) {
+            if(confirm("Zerar tudo?")) {
                 const s = await db.collection("encomendas").get();
                 const batch = db.batch();
                 s.docs.forEach(d => batch.delete(d.ref));
                 await batch.commit();
-                alert("Sistema Zerado!");
             }
+        }
+
+        function enviarZapFornecedor() {
+            const fone = document.getElementById('vend-tel').value.replace(/\D/g, '');
+            let msg = "*RESUMO DO CARREGAMENTO*\n\n";
+            let totais = {};
+            listaGlobal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
+            Object.entries(totais).sort().forEach(([r, q]) => msg += `• ${r}: ${q}\n`);
+            window.open(`https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`);
         }
 
         function gerarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFontSize(16);
             doc.text("AGROSYS - RESUMO DO LOTE", 14, 15);
-            doc.setFontSize(10);
-            doc.text("Vendedor: " + (document.getElementById('vend-nome').value || "Não informado"), 14, 22);
-            
             let totais = {};
-            listaLocal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
-            
-            doc.autoTable({ 
-                head:[['PRODUTO / RAÇA', 'QTD TOTAL']], 
-                body:Object.entries(totais).sort(), 
-                startY:30,
-                headStyles: { fillColor: [5, 150, 105] }
-            });
-            doc.save("lote_agrosys.pdf");
+            listaGlobal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
+            doc.autoTable({ head:[['RAÇA', 'QTD']], body:Object.entries(totais).sort(), startY:25 });
+            doc.save("lote.pdf");
         }
     </script>
 </body>
