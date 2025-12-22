@@ -13,96 +13,87 @@
 
     <style>
         body { background-color: #064e3b; margin: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        .aba-btn { flex: 1; padding: 18px; text-align: center; cursor: pointer; color: white; font-weight: bold; background: #065f46; border: none; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .aba-btn { flex: 1; padding: 18px; text-align: center; cursor: pointer; color: white; font-weight: bold; background: #065f46; border: none; font-size: 11px; text-transform: uppercase; }
         .aba-ativa { background: #059669; border-bottom: 4px solid #34d399; }
         .hidden { display: none !important; }
-        input { outline: none; }
-        .datalist-input::-webkit-calendar-picker-indicator { display: none !important; }
+        input { outline: none; border-radius: 12px; }
+        /* Melhora a visualização do autocomplete no celular */
+        input::-webkit-calendar-picker-indicator { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <datalist id="lista-racas">
-        <option value="Índio Gigante">
-        <option value="Galo Gigante">
-        <option value="Garnizé">
-        <option value="Polonesa">
-        <option value="Brahma">
-        <option value="Cochim">
-        <option value="Sertaneja">
-        <option value="Embrapa 051">
-        <option value="Caipira Comum">
-        <option value="Codorna">
-        <option value="Peru">
-        <option value="Angola">
+    <datalist id="racas-oficiais">
+        <option value="PINTOS P/ CORTE BRANCOS RECRIADOS">
+        <option value="PESADÃO CAIPIRA RECRIADO">
+        <option value="CAIPIRA NEGRO RECRIADO">
+        <option value="PESCOÇO PELADO MISTO RECRIADO">
+        <option value="CARIJO MISTO RECRIADO">
+        <option value="MESCLADO CAIPIRA RECRIADO">
+        <option value="PESCOÇO PELADO CARIJO MISTO RECRIADO">
+        <option value="PINTO PESCOÇO PELADO BRANCO RECRIADO">
+        <option value="CODORNAS FÊMEAS">
+        <option value="POSTURA CREME RECRIADA">
+        <option value="POSTURA BRANCA RECRIADA">
+        <option value="POSTURA NEGRA RECRIADA">
+        <option value="POSTURA VERMELHA RECRIADA">
+        <option value="POSTURA CINZA RECRIADA">
+        <option value="POSTURA OVOS AZUIS RECRIADA">
+        <option value="POSTURA OVOS VERDES">
     </datalist>
 
     <div id="section-login" class="flex flex-col items-center justify-center min-h-screen p-6">
         <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
-            <h1 class="text-3xl font-black text-emerald-800 mb-2">AGROSYS</h1>
-            <p class="text-gray-400 text-[10px] mb-8 uppercase tracking-widest">Sistema de Encomendas</p>
-            <input type="tel" id="input-senha" placeholder="Senha" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 text-center text-2xl focus:border-emerald-500">
-            <button type="button" onclick="tentarEntrar()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold text-lg active:bg-emerald-800">ENTRAR</button>
+            <h1 class="text-3xl font-black text-emerald-800 mb-2 italic">AGROSYS</h1>
+            <p class="text-gray-400 text-[10px] mb-8 uppercase tracking-widest">Acesso Restrito</p>
+            <input type="tel" id="input-senha" placeholder="Senha" class="w-full p-4 border-2 border-gray-100 mb-4 text-center text-2xl focus:border-emerald-500">
+            <button onclick="tentarEntrar()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold text-lg active:scale-95 transition-transform">ENTRAR</button>
         </div>
     </div>
 
     <div id="section-app" class="hidden">
-        <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col">
+        <div class="max-w-md mx-auto bg-gray-50 min-h-screen flex flex-col shadow-2xl">
             
-            <div class="flex sticky top-0 z-50 shadow-lg">
+            <div class="flex sticky top-0 z-50">
                 <button id="tab-pedir" onclick="navegar('pedir')" class="aba-btn aba-ativa">Novo Pedido</button>
                 <button id="tab-resumo" onclick="navegar('resumo')" class="aba-btn">Resumo Lote</button>
             </div>
 
             <div id="conteudo-pedir" class="p-6 space-y-4">
-                <div class="space-y-2">
-                    <input type="text" id="f-cliente" placeholder="Nome do Cliente" class="w-full p-4 bg-gray-50 border rounded-2xl">
-                    <input type="tel" id="f-tel" placeholder="WhatsApp (ex: 11999999999)" class="w-full p-4 bg-gray-50 border rounded-2xl">
-                </div>
+                <input type="text" id="f-cliente" placeholder="Nome do Cliente" class="w-full p-4 bg-white border">
+                <input type="tel" id="f-tel" placeholder="WhatsApp (Ex: 11999999999)" class="w-full p-4 bg-white border">
                 
                 <div class="pt-4 border-t">
-                    <p class="text-[10px] font-bold text-gray-400 mb-3 uppercase">Itens da Encomenda</p>
-                    <div id="container-itens" class="space-y-2">
+                    <p class="text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest">Itens</p>
+                    <div id="container-itens" class="space-y-3">
                         <div class="flex gap-2 item-row">
-                            <input type="text" list="lista-racas" placeholder="Raça" class="flex-1 p-3 bg-gray-100 rounded-xl text-sm val-raca">
-                            <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 rounded-xl text-center font-bold text-emerald-800 val-qtd">
+                            <input type="text" list="racas-oficiais" placeholder="Escolha a Raça" class="flex-1 p-3 bg-white border text-sm val-raca">
+                            <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 border-emerald-100 border text-center font-bold text-emerald-800 val-qtd">
                         </div>
                     </div>
-                    <button onclick="maisLinha()" class="mt-4 text-emerald-600 text-xs font-black uppercase">+ Adicionar Raça</button>
+                    <button onclick="maisLinha()" class="mt-4 text-emerald-700 text-xs font-black uppercase">+ Adicionar Outra Raça</button>
                 </div>
-
-                <button onclick="enviarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-xl mt-6 active:bg-emerald-800">SALVAR PEDIDO</button>
+                <button onclick="enviarPedido()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg mt-6 active:bg-emerald-800">SALVAR NO BANCO</button>
             </div>
 
             <div id="conteudo-resumo" class="p-6 hidden space-y-6">
-                
                 <div class="space-y-3">
-                    <button onclick="gerarPDF()" class="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold text-xs uppercase shadow-md flex items-center justify-center gap-2">
-                        <span>📄 Baixar PDF do Lote</span>
-                    </button>
-                    
+                    <button onclick="gerarPDF()" class="w-full bg-emerald-900 text-white p-4 rounded-xl font-bold text-xs uppercase shadow-sm">📄 Gerar PDF do Lote</button>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="vend-nome" placeholder="Seu Nome" class="p-3 border rounded-xl text-xs bg-gray-50" onblur="salvarPerfil()">
-                        <input type="tel" id="vend-tel" placeholder="WhatsApp Fornec." class="p-3 border rounded-xl text-xs bg-gray-50" onblur="salvarPerfil()">
+                        <input type="text" id="vend-nome" placeholder="Seu Nome" class="p-3 border text-xs bg-white" onblur="salvarPerfil()">
+                        <input type="tel" id="vend-tel" placeholder="Zap Fornecedor" class="p-3 border text-xs bg-white" onblur="salvarPerfil()">
                     </div>
-                    <button onclick="enviarZapFornecedor()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase">Enviar Resumo ao Fornecedor</button>
+                    <button onclick="enviarZapFornecedor()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase shadow-sm">Enviar Resumo p/ Fornecedor</button>
                 </div>
 
-                <div class="bg-emerald-950 text-white p-6 rounded-[2rem] shadow-xl">
-                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-[10px] uppercase tracking-widest">Totais Geral</h3>
+                <div class="bg-emerald-950 text-white p-6 rounded-[2.5rem] shadow-xl">
+                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-[10px] uppercase tracking-widest">Soma Total do Lote</h3>
                     <div id="render-totais" class="space-y-2 text-sm font-medium"></div>
                 </div>
 
-                <div class="space-y-3">
-                    <h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest px-1">Pedidos Detalhados</h3>
-                    <div id="render-pedidos" class="space-y-3"></div>
-                </div>
+                <div id="render-pedidos" class="space-y-3"></div>
 
-                <div class="py-10 text-center">
-                    <button onclick="resetarTudo()" class="bg-red-50 text-red-500 text-[10px] font-bold px-6 py-4 rounded-2xl border border-red-100 uppercase tracking-widest shadow-sm">
-                        🗑️ Iniciar Novo Ciclo (Zerar Tudo)
-                    </button>
-                </div>
+                <button onclick="resetarTudo()" class="w-full text-red-400 text-[10px] font-bold py-10 uppercase tracking-widest opacity-60">🗑️ Zerar Banco (Novo Ciclo)</button>
             </div>
         </div>
     </div>
@@ -116,14 +107,13 @@
             messagingSenderId: "85637972190",
             appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
         };
-        
         firebase.initializeApp(config);
         const db = firebase.firestore();
         let listaLocal = [];
 
         function tentarEntrar() {
             if(document.getElementById('input-senha').value === "1234") {
-                localStorage.setItem('agro_session', 'true');
+                localStorage.setItem('agro_auth_final', 'true');
                 abrirApp();
             } else { alert("Senha incorreta!"); }
         }
@@ -132,12 +122,12 @@
             document.getElementById('section-login').classList.add('hidden');
             document.getElementById('section-app').classList.remove('hidden');
             document.body.style.backgroundColor = "#f3f4f6";
-            document.getElementById('vend-nome').value = localStorage.getItem('agro_vend') || '';
-            document.getElementById('vend-tel').value = localStorage.getItem('agro_tel') || '';
-            iniciarEscutaBanco();
+            document.getElementById('vend-nome').value = localStorage.getItem('agro_v') || '';
+            document.getElementById('vend-tel').value = localStorage.getItem('agro_t') || '';
+            escutarBanco();
         }
 
-        if(localStorage.getItem('agro_session') === 'true') { abrirApp(); }
+        if(localStorage.getItem('agro_auth_final') === 'true') abrirApp();
 
         function navegar(aba) {
             document.getElementById('conteudo-pedir').classList.toggle('hidden', aba !== 'pedir');
@@ -147,19 +137,10 @@
         }
 
         function maisLinha() {
-            const container = document.getElementById('container-itens');
             const div = document.createElement('div');
             div.className = 'flex gap-2 item-row';
-            div.innerHTML = `
-                <input type="text" list="lista-racas" placeholder="Raça" class="flex-1 p-3 bg-gray-100 rounded-xl text-sm val-raca">
-                <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 rounded-xl text-center font-bold text-emerald-800 val-qtd">
-            `;
-            container.appendChild(div);
-        }
-
-        function salvarPerfil() {
-            localStorage.setItem('agro_vend', document.getElementById('vend-nome').value);
-            localStorage.setItem('agro_tel', document.getElementById('vend-tel').value);
+            div.innerHTML = `<input type="text" list="racas-oficiais" placeholder="Escolha a Raça" class="flex-1 p-3 bg-white border text-sm val-raca"><input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 border border-emerald-100 text-center font-bold text-emerald-800 val-qtd">`;
+            document.getElementById('container-itens').appendChild(div);
         }
 
         async function enviarPedido() {
@@ -167,23 +148,18 @@
             const tel = document.getElementById('f-tel').value.replace(/\D/g, '');
             const rows = document.querySelectorAll('.item-row');
             let itens = [];
-
             rows.forEach(r => {
                 const raca = r.querySelector('.val-raca').value;
                 const qtd = r.querySelector('.val-qtd').value;
                 if(raca && qtd) itens.push({ raca: raca.toUpperCase(), qtd: Number(qtd) });
             });
-
-            if(!cliente || itens.length === 0) return alert("Preencha o nome e itens!");
-
-            await db.collection("encomendas").add({
-                cliente, telefone: tel, itens, data: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            if(!cliente || itens.length === 0) return alert("Preencha o nome e itens");
+            await db.collection("encomendas").add({ cliente, telefone: tel, itens, data: firebase.firestore.FieldValue.serverTimestamp() });
             alert("Pedido Salvo!");
             location.reload();
         }
 
-        function iniciarEscutaBanco() {
+        function escutarBanco() {
             db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
                 const rPedidos = document.getElementById('render-pedidos');
                 const rTotais = document.getElementById('render-totais');
@@ -195,77 +171,79 @@
                     const p = doc.data();
                     listaLocal.push(p);
                     
-                    const whatsBtn = p.telefone ? `<a href="https://wa.me/55${p.telefone}" target="_blank" class="bg-emerald-100 p-2 rounded-full">
-                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.94 3.659 1.437 5.63 1.438h.008c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                    </a>` : '';
+                    // Botão de WhatsApp Reforçado
+                    const linkZap = p.telefone ? `<a href="https://wa.me/55${p.telefone}" target="_blank" style="background:#25D366; padding:10px 14px; border-radius:12px; color:white; font-weight:black; font-size:10px; text-decoration:none; display:inline-block;">ZAP</a>` : '';
 
                     const div = document.createElement('div');
-                    div.className = 'bg-white p-4 border rounded-2xl flex justify-between items-center shadow-sm';
+                    div.className = 'bg-white p-4 border border-gray-200 rounded-2xl flex justify-between items-center shadow-sm';
                     div.innerHTML = `
                         <div class="flex items-center gap-3">
-                            ${whatsBtn}
+                            ${linkZap}
                             <div>
-                                <div class="font-bold text-emerald-900 text-sm">${p.cliente}</div>
-                                <div class="text-[9px] text-gray-400 mt-1 uppercase">${p.itens.map(i => i.qtd+'x '+i.raca).join(' | ')}</div>
+                                <div class="font-bold text-emerald-950 text-[14px]">${p.cliente}</div>
+                                <div class="text-[9px] text-gray-400 uppercase font-medium leading-tight">${p.itens.map(i => i.qtd+'x '+i.raca).join(' | ')}</div>
                             </div>
                         </div>
-                        <button onclick="deletar('${doc.id}')" class="text-red-100 hover:text-red-500 font-bold px-3 text-2xl">×</button>
+                        <button onclick="deletar('${doc.id}')" class="text-red-200 text-2xl font-light px-2">×</button>
                     `;
                     rPedidos.appendChild(div);
-
-                    p.itens.forEach(i => {
-                        totaisMap[i.raca] = (totaisMap[i.raca] || 0) + i.qtd;
-                    });
+                    p.itens.forEach(i => totaisMap[i.raca] = (totaisMap[i.raca] || 0) + i.qtd);
                 });
 
                 Object.entries(totaisMap).sort().forEach(([r, q]) => {
-                    rTotais.innerHTML += `<div class="flex justify-between border-b border-emerald-800/20 py-2">
-                        <span class="opacity-70 text-[10px] uppercase">${r}</span>
+                    rTotais.innerHTML += `<div class="flex justify-between border-b border-emerald-900/40 py-2 last:border-0">
+                        <span class="opacity-80 text-[10px] uppercase pr-4">${r}</span>
                         <span class="font-bold text-lg">${q}</span>
                     </div>`;
                 });
             });
         }
 
+        function salvarPerfil() {
+            localStorage.setItem('agro_v', document.getElementById('vend-nome').value);
+            localStorage.setItem('agro_t', document.getElementById('vend-tel').value);
+        }
+
         function enviarZapFornecedor() {
             const fone = document.getElementById('vend-tel').value.replace(/\D/g, '');
-            if(!fone) return alert("Preencha o WhatsApp do fornecedor");
-            
-            let msg = "*RESUMO DO CARREGAMENTO*\n\n";
+            if(!fone) return alert("Digite o Zap do Fornecedor");
+            let msg = "*RESUMO DE CARREGAMENTO*\n\n";
             let totais = {};
             listaLocal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
-            
-            Object.entries(totais).forEach(([r, q]) => {
-                msg += `• ${r}: ${q}\n`;
-            });
-            
+            Object.entries(totais).sort().forEach(([r, q]) => msg += `• ${r}: ${q}\n`);
             window.open(`https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`);
         }
 
-        async function deletar(id) { if(confirm("Excluir pedido?")) await db.collection("encomendas").doc(id).delete(); }
-
+        async function deletar(id) { if(confirm("Deseja excluir este pedido?")) await db.collection("encomendas").doc(id).delete(); }
+        
         async function resetarTudo() {
-            if(confirm("Zerar tudo para novo carregamento?")) {
+            if(confirm("⚠️ ATENÇÃO: Deseja apagar TUDO para iniciar um novo lote?")) {
                 const s = await db.collection("encomendas").get();
                 const batch = db.batch();
                 s.docs.forEach(d => batch.delete(d.ref));
                 await batch.commit();
+                alert("Sistema Zerado!");
             }
         }
 
         function gerarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            doc.setFontSize(16);
             doc.text("AGROSYS - RESUMO DO LOTE", 14, 15);
+            doc.setFontSize(10);
+            doc.text("Vendedor: " + (document.getElementById('vend-nome').value || "Não informado"), 14, 22);
+            
             let totais = {};
             listaLocal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
-            doc.autoTable({
-                head: [['RAÇA / AVE', 'QUANTIDADE TOTAL']],
-                body: Object.entries(totais),
-                startY: 25,
+            
+            doc.autoTable({ 
+                head:[['PRODUTO / RAÇA', 'QTD TOTAL']], 
+                body:Object.entries(totais).sort(), 
+                startY:30,
                 headStyles: { fillColor: [5, 150, 105] }
             });
-            doc.save("resumo_carregamento.pdf");
+            doc.save("lote_agrosys.pdf");
         }
     </script>
 </body>
