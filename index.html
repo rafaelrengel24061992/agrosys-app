@@ -13,20 +13,36 @@
 
     <style>
         body { background-color: #064e3b; margin: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        .aba-btn { flex: 1; padding: 18px; text-align: center; cursor: pointer; color: white; font-weight: bold; background: #065f46; border: none; font-size: 12px; text-transform: uppercase; }
+        .aba-btn { flex: 1; padding: 18px; text-align: center; cursor: pointer; color: white; font-weight: bold; background: #065f46; border: none; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
         .aba-ativa { background: #059669; border-bottom: 4px solid #34d399; }
         .hidden { display: none !important; }
         input { outline: none; }
+        .datalist-input::-webkit-calendar-picker-indicator { display: none !important; }
     </style>
 </head>
 <body>
+
+    <datalist id="lista-racas">
+        <option value="Índio Gigante">
+        <option value="Galo Gigante">
+        <option value="Garnizé">
+        <option value="Polonesa">
+        <option value="Brahma">
+        <option value="Cochim">
+        <option value="Sertaneja">
+        <option value="Embrapa 051">
+        <option value="Caipira Comum">
+        <option value="Codorna">
+        <option value="Peru">
+        <option value="Angola">
+    </datalist>
 
     <div id="section-login" class="flex flex-col items-center justify-center min-h-screen p-6">
         <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
             <h1 class="text-3xl font-black text-emerald-800 mb-2">AGROSYS</h1>
             <p class="text-gray-400 text-[10px] mb-8 uppercase tracking-widest">Sistema de Encomendas</p>
             <input type="tel" id="input-senha" placeholder="Senha" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 text-center text-2xl focus:border-emerald-500">
-            <button type="button" onclick="tentarEntrar()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold text-lg active:bg-emerald-800 transition-colors">ENTRAR</button>
+            <button type="button" onclick="tentarEntrar()" class="w-full bg-emerald-600 text-white p-5 rounded-2xl font-bold text-lg active:bg-emerald-800">ENTRAR</button>
         </div>
     </div>
 
@@ -41,14 +57,14 @@
             <div id="conteudo-pedir" class="p-6 space-y-4">
                 <div class="space-y-2">
                     <input type="text" id="f-cliente" placeholder="Nome do Cliente" class="w-full p-4 bg-gray-50 border rounded-2xl">
-                    <input type="tel" id="f-tel" placeholder="WhatsApp do Cliente" class="w-full p-4 bg-gray-50 border rounded-2xl">
+                    <input type="tel" id="f-tel" placeholder="WhatsApp (ex: 11999999999)" class="w-full p-4 bg-gray-50 border rounded-2xl">
                 </div>
                 
                 <div class="pt-4 border-t">
                     <p class="text-[10px] font-bold text-gray-400 mb-3 uppercase">Itens da Encomenda</p>
                     <div id="container-itens" class="space-y-2">
                         <div class="flex gap-2 item-row">
-                            <input type="text" placeholder="Raça" class="flex-1 p-3 bg-gray-100 rounded-xl text-sm val-raca">
+                            <input type="text" list="lista-racas" placeholder="Raça" class="flex-1 p-3 bg-gray-100 rounded-xl text-sm val-raca">
                             <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 rounded-xl text-center font-bold text-emerald-800 val-qtd">
                         </div>
                     </div>
@@ -59,21 +75,26 @@
             </div>
 
             <div id="conteudo-resumo" class="p-6 hidden space-y-6">
+                
                 <div class="space-y-3">
-                    <button onclick="gerarPDF()" class="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold text-xs uppercase shadow-md">📄 Baixar PDF para Fornecedor</button>
+                    <button onclick="gerarPDF()" class="w-full bg-emerald-800 text-white p-4 rounded-xl font-bold text-xs uppercase shadow-md flex items-center justify-center gap-2">
+                        <span>📄 Baixar PDF do Lote</span>
+                    </button>
+                    
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="vend-nome" placeholder="Vendedor" class="p-3 border rounded-xl text-xs bg-gray-50" onblur="salvarPerfil()">
-                        <input type="tel" id="vend-tel" placeholder="Seu WhatsApp" class="p-3 border rounded-xl text-xs bg-gray-50" onblur="salvarPerfil()">
+                        <input type="text" id="vend-nome" placeholder="Seu Nome" class="p-3 border rounded-xl text-xs bg-gray-50" onblur="salvarPerfil()">
+                        <input type="tel" id="vend-tel" placeholder="WhatsApp Fornec." class="p-3 border rounded-xl text-xs bg-gray-50" onblur="salvarPerfil()">
                     </div>
+                    <button onclick="enviarZapFornecedor()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase">Enviar Resumo ao Fornecedor</button>
                 </div>
 
                 <div class="bg-emerald-950 text-white p-6 rounded-[2rem] shadow-xl">
-                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-[10px] uppercase tracking-widest">Totais do Carregamento</h3>
+                    <h3 class="text-emerald-400 font-bold mb-4 border-b border-emerald-900 pb-2 text-[10px] uppercase tracking-widest">Totais Geral</h3>
                     <div id="render-totais" class="space-y-2 text-sm font-medium"></div>
                 </div>
 
                 <div class="space-y-3">
-                    <h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest px-1">Pedidos Individuais</h3>
+                    <h3 class="font-bold text-gray-400 text-[10px] uppercase tracking-widest px-1">Pedidos Detalhados</h3>
                     <div id="render-pedidos" class="space-y-3"></div>
                 </div>
 
@@ -87,7 +108,6 @@
     </div>
 
     <script>
-        // FIREBASE CONFIG
         const config = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -97,42 +117,28 @@
             appId: "1:85637972190:web:2f0f2a8b59105a0499824f"
         };
         
-        // Inicialização Segura
-        let db;
-        try {
-            firebase.initializeApp(config);
-            db = firebase.firestore();
-        } catch(e) { console.error("Erro Firebase"); }
-
+        firebase.initializeApp(config);
+        const db = firebase.firestore();
         let listaLocal = [];
 
-        // SISTEMA DE LOGIN
         function tentarEntrar() {
-            const senha = document.getElementById('input-senha').value;
-            if(senha === "1234") {
+            if(document.getElementById('input-senha').value === "1234") {
                 localStorage.setItem('agro_session', 'true');
                 abrirApp();
-            } else {
-                alert("Senha incorreta!");
-            }
+            } else { alert("Senha incorreta!"); }
         }
 
         function abrirApp() {
             document.getElementById('section-login').classList.add('hidden');
             document.getElementById('section-app').classList.remove('hidden');
             document.body.style.backgroundColor = "#f3f4f6";
-            
-            // Carrega perfil salvo
             document.getElementById('vend-nome').value = localStorage.getItem('agro_vend') || '';
             document.getElementById('vend-tel').value = localStorage.getItem('agro_tel') || '';
-            
             iniciarEscutaBanco();
         }
 
-        // Auto-login se já autenticado
         if(localStorage.getItem('agro_session') === 'true') { abrirApp(); }
 
-        // NAVEGAÇÃO
         function navegar(aba) {
             document.getElementById('conteudo-pedir').classList.toggle('hidden', aba !== 'pedir');
             document.getElementById('conteudo-resumo').classList.toggle('hidden', aba !== 'resumo');
@@ -140,13 +146,12 @@
             document.getElementById('tab-resumo').classList.toggle('aba-ativa', aba === 'resumo');
         }
 
-        // GERENCIAMENTO DE ITENS
         function maisLinha() {
             const container = document.getElementById('container-itens');
             const div = document.createElement('div');
             div.className = 'flex gap-2 item-row';
             div.innerHTML = `
-                <input type="text" placeholder="Raça" class="flex-1 p-3 bg-gray-100 rounded-xl text-sm val-raca">
+                <input type="text" list="lista-racas" placeholder="Raça" class="flex-1 p-3 bg-gray-100 rounded-xl text-sm val-raca">
                 <input type="number" placeholder="Qtd" class="w-20 p-3 bg-emerald-50 rounded-xl text-center font-bold text-emerald-800 val-qtd">
             `;
             container.appendChild(div);
@@ -157,10 +162,9 @@
             localStorage.setItem('agro_tel', document.getElementById('vend-tel').value);
         }
 
-        // BANCO DE DADOS
         async function enviarPedido() {
             const cliente = document.getElementById('f-cliente').value;
-            const tel = document.getElementById('f-tel').value;
+            const tel = document.getElementById('f-tel').value.replace(/\D/g, '');
             const rows = document.querySelectorAll('.item-row');
             let itens = [];
 
@@ -172,13 +176,11 @@
 
             if(!cliente || itens.length === 0) return alert("Preencha o nome e itens!");
 
-            try {
-                await db.collection("encomendas").add({
-                    cliente, telefone: tel, itens, data: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert("Pedido Salvo com sucesso!");
-                location.reload(); // Recarrega para limpar tudo
-            } catch(e) { alert("Erro ao salvar."); }
+            await db.collection("encomendas").add({
+                cliente, telefone: tel, itens, data: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert("Pedido Salvo!");
+            location.reload();
         }
 
         function iniciarEscutaBanco() {
@@ -192,14 +194,22 @@
                 snap.forEach(doc => {
                     const p = doc.data();
                     listaLocal.push(p);
+                    
+                    const whatsBtn = p.telefone ? `<a href="https://wa.me/55${p.telefone}" target="_blank" class="bg-emerald-100 p-2 rounded-full">
+                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.94 3.659 1.437 5.63 1.438h.008c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    </a>` : '';
+
                     const div = document.createElement('div');
                     div.className = 'bg-white p-4 border rounded-2xl flex justify-between items-center shadow-sm';
                     div.innerHTML = `
-                        <div>
-                            <div class="font-bold text-emerald-900 text-sm">${p.cliente}</div>
-                            <div class="text-[9px] text-gray-400 mt-1 uppercase">${p.itens.map(i => i.qtd+'x '+i.raca).join(' | ')}</div>
+                        <div class="flex items-center gap-3">
+                            ${whatsBtn}
+                            <div>
+                                <div class="font-bold text-emerald-900 text-sm">${p.cliente}</div>
+                                <div class="text-[9px] text-gray-400 mt-1 uppercase">${p.itens.map(i => i.qtd+'x '+i.raca).join(' | ')}</div>
+                            </div>
                         </div>
-                        <button onclick="deletar('${doc.id}')" class="text-red-200 font-bold px-3 text-2xl">×</button>
+                        <button onclick="deletar('${doc.id}')" class="text-red-100 hover:text-red-500 font-bold px-3 text-2xl">×</button>
                     `;
                     rPedidos.appendChild(div);
 
@@ -209,7 +219,7 @@
                 });
 
                 Object.entries(totaisMap).sort().forEach(([r, q]) => {
-                    rTotais.innerHTML += `<div class="flex justify-between border-b border-emerald-800/30 py-2">
+                    rTotais.innerHTML += `<div class="flex justify-between border-b border-emerald-800/20 py-2">
                         <span class="opacity-70 text-[10px] uppercase">${r}</span>
                         <span class="font-bold text-lg">${q}</span>
                     </div>`;
@@ -217,17 +227,29 @@
             });
         }
 
-        async function deletar(id) {
-            if(confirm("Excluir este pedido?")) await db.collection("encomendas").doc(id).delete();
+        function enviarZapFornecedor() {
+            const fone = document.getElementById('vend-tel').value.replace(/\D/g, '');
+            if(!fone) return alert("Preencha o WhatsApp do fornecedor");
+            
+            let msg = "*RESUMO DO CARREGAMENTO*\n\n";
+            let totais = {};
+            listaLocal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
+            
+            Object.entries(totais).forEach(([r, q]) => {
+                msg += `• ${r}: ${q}\n`;
+            });
+            
+            window.open(`https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`);
         }
 
+        async function deletar(id) { if(confirm("Excluir pedido?")) await db.collection("encomendas").doc(id).delete(); }
+
         async function resetarTudo() {
-            if(confirm("⚠️ ATENÇÃO: Isso apagará TODOS os pedidos para iniciar um novo carregamento. Confirma?")) {
+            if(confirm("Zerar tudo para novo carregamento?")) {
                 const s = await db.collection("encomendas").get();
                 const batch = db.batch();
                 s.docs.forEach(d => batch.delete(d.ref));
                 await batch.commit();
-                alert("Banco limpo!");
             }
         }
 
@@ -235,17 +257,14 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.text("AGROSYS - RESUMO DO LOTE", 14, 15);
-            
             let totais = {};
             listaLocal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
-            
             doc.autoTable({
                 head: [['RAÇA / AVE', 'QUANTIDADE TOTAL']],
                 body: Object.entries(totais),
                 startY: 25,
                 headStyles: { fillColor: [5, 150, 105] }
             });
-            
             doc.save("resumo_carregamento.pdf");
         }
     </script>
