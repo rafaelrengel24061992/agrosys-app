@@ -27,19 +27,6 @@
         .btn-zap { background-color: #25D366 !important; color: white !important; font-weight: bold; padding: 10px 15px; border-radius: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; min-width: 60px; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; }
     </style>
-
-    <script>
-        // REGISTRO DO SERVICE WORKER PARA INSTALAÇÃO (PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js').then(function(reg) {
-                    console.log('AgroSys: App pronto para instalação');
-                }).catch(function(err) {
-                    console.log('Erro ao registrar Service Worker:', err);
-                });
-            });
-        }
-    </script>
 </head>
 <body>
 
@@ -119,6 +106,7 @@
     </div>
 
     <script>
+        // CONFIGURAÇÃO FIREBASE
         const config = {
             apiKey: "AIzaSyDn0FwwFZNmd2bhJVwR8xbiPeCB1LEe6xw",
             authDomain: "agrosys-e3d99.firebaseapp.com",
@@ -131,6 +119,44 @@
         const db = firebase.firestore();
         let listaGlobal = [];
 
+        // FUNÇÕES DE LOGIN E NAVEGAÇÃO
+        function tentarEntrar() {
+            const senha = document.getElementById('input-senha').value;
+            if(senha === "1234") {
+                localStorage.setItem('agrosys_ok', 'true');
+                mostrarApp();
+            } else { 
+                alert("Senha Errada"); 
+            }
+        }
+
+        function mostrarApp() {
+            document.getElementById('section-login').classList.add('hidden');
+            document.getElementById('section-app').classList.remove('hidden');
+            document.body.style.backgroundColor = "#f3f4f6";
+            escutarBanco();
+        }
+
+        function navegar(aba) {
+            document.getElementById('conteudo-pedir').classList.toggle('hidden', aba !== 'pedir');
+            document.getElementById('conteudo-resumo').classList.toggle('hidden', aba !== 'resumo');
+            document.getElementById('tab-pedir').classList.toggle('aba-ativa', aba === 'pedir');
+            document.getElementById('tab-resumo').classList.toggle('aba-ativa', aba === 'resumo');
+        }
+
+        // VERIFICA LOGIN AO CARREGAR
+        if(localStorage.getItem('agrosys_ok') === 'true') { 
+            mostrarApp(); 
+        }
+
+        // REGISTRO DO SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log("Erro SW:", err));
+            });
+        }
+
+        // LÓGICA DO SISTEMA
         const opcoesRacas = `
             <option value="">CLIQUE PARA ESCOLHER A RAÇA</option>
             <option value="PINTOS P/ CORTE BRANCOS RECRIADOS">PINTOS P/ CORTE BRANCOS RECRIADOS</option>
@@ -150,29 +176,6 @@
             <option value="POSTURA OVOS AZUIS RECRIADA">POSTURA OVOS AZUIS RECRIADA</option>
             <option value="POSTURA OVOS VERDES">POSTURA OVOS VERDES</option>
         `;
-
-        function tentarEntrar() {
-            if(document.getElementById('input-senha').value === "1234") {
-                localStorage.setItem('agrosys_ok', 'true');
-                mostrarApp();
-            } else { alert("Senha Errada"); }
-        }
-
-        function mostrarApp() {
-            document.getElementById('section-login').classList.add('hidden');
-            document.getElementById('section-app').classList.remove('hidden');
-            document.body.style.backgroundColor = "#f3f4f6";
-            escutarBanco();
-        }
-
-        if(localStorage.getItem('agrosys_ok') === 'true') { mostrarApp(); }
-
-        function navegar(aba) {
-            document.getElementById('conteudo-pedir').classList.toggle('hidden', aba !== 'pedir');
-            document.getElementById('conteudo-resumo').classList.toggle('hidden', aba !== 'resumo');
-            document.getElementById('tab-pedir').classList.toggle('aba-ativa', aba === 'pedir');
-            document.getElementById('tab-resumo').classList.toggle('aba-ativa', aba === 'resumo');
-        }
 
         function maisLinha() {
             const div = document.createElement('div');
@@ -209,6 +212,7 @@
             db.collection("encomendas").orderBy("data", "desc").onSnapshot(snap => {
                 const rP = document.getElementById('render-pedidos');
                 const rT = document.getElementById('render-totais');
+                if(!rP || !rT) return;
                 rP.innerHTML = ''; rT.innerHTML = '';
                 let totais = {};
                 listaGlobal = [];
@@ -242,4 +246,15 @@
             window.open(`https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`);
         }
 
-        function gerarPDF()
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("AGROSYS - RESUMO DO LOTE", 14, 15);
+            let totais = {};
+            listaGlobal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
+            doc.autoTable({ head:[['RAÇA', 'QTD']], body:Object.entries(totais).sort(), startY:25 });
+            doc.save("lote.pdf");
+        }
+    </script>
+</body>
+</html>
