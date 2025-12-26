@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#064e3b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+
     <title>AgroSys Pro</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -16,9 +25,21 @@
         .aba-ativa { background: #059669; border-bottom: 4px solid #34d399; }
         .hidden { display: none !important; }
         .btn-zap { background-color: #25D366 !important; color: white !important; font-weight: bold; padding: 10px 15px; border-radius: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; min-width: 60px; }
-        /* Estilo para o seletor no mobile */
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; }
     </style>
+
+    <script>
+        // REGISTRO DO SERVICE WORKER PARA INSTALAÇÃO (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js').then(function(reg) {
+                    console.log('AgroSys: App pronto para instalação');
+                }).catch(function(err) {
+                    console.log('Erro ao registrar Service Worker:', err);
+                });
+            });
+        }
+    </script>
 </head>
 <body>
 
@@ -110,7 +131,6 @@
         const db = firebase.firestore();
         let listaGlobal = [];
 
-        // Lista de Raças para replicar via JS
         const opcoesRacas = `
             <option value="">CLIQUE PARA ESCOLHER A RAÇA</option>
             <option value="PINTOS P/ CORTE BRANCOS RECRIADOS">PINTOS P/ CORTE BRANCOS RECRIADOS</option>
@@ -222,15 +242,4 @@
             window.open(`https://wa.me/55${fone}?text=${encodeURIComponent(msg)}`);
         }
 
-        function gerarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("AGROSYS - RESUMO DO LOTE", 14, 15);
-            let totais = {};
-            listaGlobal.forEach(p => p.itens.forEach(i => totais[i.raca] = (totais[i.raca] || 0) + i.qtd));
-            doc.autoTable({ head:[['RAÇA', 'QTD']], body:Object.entries(totais).sort(), startY:25 });
-            doc.save("lote.pdf");
-        }
-    </script>
-</body>
-</html>
+        function gerarPDF()
